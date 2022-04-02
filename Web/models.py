@@ -29,7 +29,7 @@ class NFT(MPTTModel):
 
     description = models.TextField(verbose_name=_("Description of the NFT given by the creator."), null=True)
     metaDataType = models.CharField(max_length=5, verbose_name=_("Type of the NFT."))
-    dataLink = models.TextField(verbose_name=_("Link of the content of NFT."))
+    dataLink = models.SlugField(verbose_name=_("Link of the content of NFT."))
     collectionName = models.ForeignKey(
         "NFTCollection",
         related_name="collectionName",
@@ -55,6 +55,9 @@ class NFT(MPTTModel):
         verbose_name=_("0: not on market, 1: on market but not on sale, 2: on market and on sale"),
     )
 
+    # slug = models.SlugField(verbose_name=_("Category safe URL"), max_length=255, unique=True)
+    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
+
     # attributes
 
     class Meta:
@@ -64,11 +67,16 @@ class NFT(MPTTModel):
 class NFTCollection(MPTTModel):
     name = models.CharField(max_length=128, primary_key=True, verbose_name=_("Name of the NFT collection."))
 
+    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
+
 
 class User(MPTTModel):
     uAdress = models.TextField(_("Address of the user coming from blockchain."), primary_key=True)
     username = models.CharField(_("Unique name of the user set when signing up"), max_length=32, unique=True)
-    profilePicture = models.ImageField(_("User's profile picture"), null=True, upload_to="media/")
+    profilePicture = models.ImageField(_("User's profile picture"), null=True, blank=True, upload_to="media/")
     mailAdress = models.TextField(_("Mail address of the user set when signing up"), unique=True)
-    favoritedNFTs = models.ManyToManyField(NFT)
-    watchListedNFTCollections = models.ManyToManyField(NFTCollection)
+    favoritedNFTs = models.ManyToManyField(NFT, blank=True)
+    watchListedNFTCollections = models.ManyToManyField(NFTCollection, blank=True)
+
+    # slug = models.SlugField(verbose_name=_("Category safe URL"), max_length=255, unique=True, null=True)
+    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
