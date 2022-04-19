@@ -1,11 +1,19 @@
 from asyncio.windows_events import NULL
+from itertools import chain
+from tkinter.messagebox import QUESTION
+from unicodedata import name
 from urllib import request
 
 from django.shortcuts import render
 from rest_framework import generics
 
-from .models import NFT, NFTCollection, User
-from .serializers import NFTCollectionSerializer, NFTSerializer, UserSerializer
+from .models import NFT, NFTCollection, NFTCollectionCategory, User
+from .serializers import (
+    NFTCategorySerializer,
+    NFTCollectionSerializer,
+    NFTSerializer,
+    UserSerializer,
+)
 
 
 class NFTListView(generics.ListAPIView):
@@ -33,16 +41,47 @@ class NFTListView(generics.ListAPIView):
 
 class NFTCollectionListView(generics.ListAPIView):
     def get_queryset(self):
-        queryset = NFTCollection.objects.all()
         name = self.request.query_params.get("name")
-        return super().get_queryset()
+        owner = self.request.query_params.get("owner")
+        category = self.request.query_params.get("category")
+        queryset = NFTCollection.objects.all()
+        if name:
+            queryset = queryset.filter(name__icontains=name)
+        if owner:
+            queryset = queryset.filter(owner=owner)
+        if category:
+            queryset = queryset.filter(category=category)
+        return queryset
 
     serializer_class = NFTCollectionSerializer
 
 
 class UserListView(generics.ListAPIView):
-    queryset = User.objects.all()
+    def get_queryset(self):
+        uAdress = self.request.query_params.get("address")
+        username = self.request.query_params.get("username")
+        mailAdress = self.request.query_params.get("email")
+        queryset = User.objects.all()
+        if username:
+            queryset = queryset.filter(username__icontains=username)
+        if uAdress:
+            queryset = queryset.filter(uAdress=uAdress)
+        if mailAdress:
+            queryset = queryset.filter(mailAdress=mailAdress)
+        return queryset
+
     serializer_class = UserSerializer
+
+
+class CategoryListView(generics.ListAPIView):
+    def get_queryset(self):
+        name = self.request.query_params.get("name")
+        queryset = NFTCollectionCategory.objects.all()
+        if name:
+            queryset = queryset.filter(name__icontains=name)
+        return queryset
+
+    serializer_class = NFTCategorySerializer
 
 
 # Create your views here.

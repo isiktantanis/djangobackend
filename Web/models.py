@@ -76,23 +76,26 @@ class NFTCollection(MPTTModel):
     # collectionImageLink = models.SlugField(verbose_name=_("Link of the image of collection"))
     # ADD LIKED BY NUMBER
     parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
-    description = models.TextField(verbose_name=_("Description of the NFT given by the creator."), null=True)
-    """owner = models.ForeignKey(
+    description = models.TextField(
+        verbose_name=_("Description of the NFT given by the creator."), null=True, blank=True
+    )
+    owner = models.ForeignKey(
         "User",
         to_field="username",
         related_name="owner",
         verbose_name=_("Name of the creator of the NFT Collection."),
         on_delete=models.SET("user_deleted"),  # SOR
+        default="",
     )
-    
+
     category = models.ForeignKey(
         "NFTCollectionCategory",
         to_field="name",
         related_name="category",
         verbose_name=_("Category of the NFT Collection."),
         on_delete=models.SET("user_deleted"),  # SOR
+        null=True,
     )
-    """
 
 
 class User(MPTTModel):
@@ -111,3 +114,6 @@ class User(MPTTModel):
 class NFTCollectionCategory(MPTTModel):
     name = models.CharField(_("Name of the NFT Collection Category."), primary_key=True, max_length=16)
     parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
+
+    class Meta:
+        verbose_name_plural = "NFT Collection Categories"

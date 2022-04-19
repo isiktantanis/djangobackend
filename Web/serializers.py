@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import NFT, NFTCollection, User
+from .models import NFT, NFTCollection, NFTCollectionCategory, User
 
 
 class NFTSerializer(serializers.ModelSerializer):
@@ -37,6 +37,10 @@ class UserSerializer(serializers.ModelSerializer):
 class NFTCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = NFTCollection
-        fields = [
-            "name",
-        ]
+        fields = ["name", "description", "owner", "category"]
+
+
+class NFTCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NFTCollectionCategory
+        fields = ["name"]
