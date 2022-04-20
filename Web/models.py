@@ -1,15 +1,7 @@
-from asyncio.windows_events import NULL
-from enum import unique
-from ftplib import FTP
-from unicodedata import category
-
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-from mptt.forms import forms
 from mptt.models import MPTTModel, TreeForeignKey
-from pyexpat import model
 
 # Create your models here.
 

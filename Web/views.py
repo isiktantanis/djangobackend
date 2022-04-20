@@ -1,8 +1,3 @@
-from asyncio.windows_events import NULL
-from itertools import chain
-from tkinter.messagebox import QUESTION
-from unicodedata import name
-from urllib import request
 
 from django.shortcuts import render
 from rest_framework import generics
