@@ -32,7 +32,7 @@ class NFT(MPTTModel):
 
     description = models.TextField(verbose_name=_("Description of the NFT given by the creator."), null=True)
     metaDataType = models.CharField(max_length=5, verbose_name=_("Type of the NFT."))
-    dataLink = models.SlugField(verbose_name=_("Link of the content of NFT."))
+    dataLink = models.TextField(verbose_name=_("Link of the content of NFT."))
     # take this link and move it to database and create another link
     # TODO: [NFTMAR-130] MAKE USERS DELETABLE WITHOUT EFFECTING NFTS
 
