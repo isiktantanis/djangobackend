@@ -32,51 +32,61 @@ def NFTListView(request):
         return Response(status=200)
     # attributes
 
+@api_view(["GET", "POST", "PATCH", "DELETE"])
+def NFTCollectionListView(request):
+    if request.method == "GET":
+        queryset = NFTCollection.objects.all().filter(**request.data)
+        queryset = NFTCollectionSerializer(queryset, many=True)
+        return Response(queryset.data)
 
-class NFTCollectionListView(generics.ListAPIView):
-    def get_queryset(self):
-        name = self.request.query_params.get("name")
-        owner = self.request.query_params.get("owner")
-        category = self.request.query_params.get("category")
-        queryset = NFTCollection.objects.all()
-        if name:
-            queryset = queryset.filter(name__icontains=name)
-        if owner:
-            queryset = queryset.filter(owner=owner)
-        if category:
-            queryset = queryset.filter(category=category)
-        print("woop:", queryset.filter(NFT__pk=1))
-        return queryset
+    elif request.method == "POST":
+        newNFTCollectionObject = NFTCollectionSerializer(data=request.data)
+        newNFTCollectionObject.is_valid(raise_exception=True)
+        newNFTCollectionObject.save()
+        return Response(newNFTCollectionObject.data)
 
-    serializer_class = NFTCollectionSerializer
+    elif request.method == "DELETE":
+        queryset = NFTCollection.objects.all().filter(**request.data.dict())
+        queryset.delete()
+        return Response(status=200)
 
+@api_view(["GET", "POST", "PATCH", "DELETE"])
+def UserListView(request):
+    if request.method == "GET":
+        queryset = User.objects.all().filter(**request.data)
+        queryset = UserSerializer(queryset, many=True)
+        return Response(queryset.data)
 
-class UserListView(generics.ListAPIView):
-    def get_queryset(self):
-        uAdress = self.request.query_params.get("address")
-        username = self.request.query_params.get("username")
-        mailAdress = self.request.query_params.get("email")
-        queryset = User.objects.all()
-        if username:
-            queryset = queryset.filter(username__icontains=username)
-        if uAdress:
-            queryset = queryset.filter(uAdress=uAdress)
-        if mailAdress:
-            queryset = queryset.filter(mailAdress=mailAdress)
-        return queryset
+    elif request.method == "POST":
+        newUserObject = UserSerializer(data=request.data)
+        newUserObject.is_valid(raise_exception=True)
+        newUserObject.save()
+        return Response(newUserObject.data)
 
-    serializer_class = UserSerializer
+    elif request.method == "DELETE":
+        queryset = User.objects.all().filter(**request.data.dict())
+        queryset.delete()
+        return Response(status=200)
 
 
-class CategoryListView(generics.ListAPIView):
-    def get_queryset(self):
-        name = self.request.query_params.get("name")
-        queryset = NFTCollectionCategory.objects.all()
-        if name:
-            queryset = queryset.filter(name__icontains=name)
-        return queryset
+@api_view(["GET", "POST", "PATCH", "DELETE"])
+def CategoryListView(request):
+    if request.method == "GET":
+        queryset = NFTCollectionCategory.objects.all().filter(**request.data)
+        queryset = NFTCategorySerializer(queryset, many=True)
+        return Response(queryset.data)
 
-    serializer_class = NFTCategorySerializer
+    elif request.method == "POST":
+        newCategoryObject = NFTCategorySerializer(data=request.data)
+        newCategoryObject.is_valid(raise_exception=True)
+        newCategoryObject.save()
+        return Response(newCategoryObject.data)
+
+    elif request.method == "DELETE":
+        queryset = NFTCollectionCategory.objects.all().filter(**request.data.dict())
+        queryset.delete()
+        return Response(status=200)
+
 
 
 # Create your views here.

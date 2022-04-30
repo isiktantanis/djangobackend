@@ -8,9 +8,9 @@ urlpatterns = [
     path("api/nfts", views.NFTListView, name="NFT_home"),
     path(
         "api/nftcollections",
-        views.NFTCollectionListView.as_view(),
+        views.NFTCollectionListView,
         name="NFTCollection_home",
     ),
-    path("api/users", views.UserListView.as_view(), name="User_home"),
-    path("api/categories", views.CategoryListView.as_view(), name="Category_home"),
+    path("api/users", views.UserListView, name="User_home"),
+    path("api/categories", views.CategoryListView, name="Category_home"),
 ]
