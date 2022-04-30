@@ -132,3 +132,7 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"]
 }
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+]
