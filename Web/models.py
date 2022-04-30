@@ -22,7 +22,9 @@ class NFT(MPTTModel):
         verbose_name=_("NFT's name given by the NFT's creator."),
     )
 
-    description = models.TextField(verbose_name=_("Description of the NFT given by the creator."), null=True)
+    description = models.TextField(
+        verbose_name=_("Description of the NFT given by the creator."), null=True
+    )
     metaDataType = models.CharField(max_length=5, verbose_name=_("Type of the NFT."))
     dataLink = models.SlugField(verbose_name=_("Link of the content of NFT."))
     # take this link and move it to database and create another link
@@ -50,12 +52,16 @@ class NFT(MPTTModel):
     )
     marketStatus = models.IntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(2)],
-        verbose_name=_("0: not on market, 1: on market but not on sale, 2: on market and on sale"),
+        verbose_name=_(
+            "0: not on market, 1: on market but not on sale, 2: on market and on sale"
+        ),
         default=0,
     )
 
     # slug = models.SlugField(verbose_name=_("Category safe URL"), max_length=255, unique=True)
-    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
+    parent = TreeForeignKey(
+        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
+    )
 
     # attributes
 
@@ -64,12 +70,18 @@ class NFT(MPTTModel):
 
 
 class NFTCollection(MPTTModel):
-    name = models.CharField(max_length=128, primary_key=True, verbose_name=_("Name of the NFT collection."))
+    name = models.CharField(
+        max_length=128, primary_key=True, verbose_name=_("Name of the NFT collection.")
+    )
     # collectionImageLink = models.SlugField(verbose_name=_("Link of the image of collection"))
     # ADD LIKED BY NUMBER
-    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
+    parent = TreeForeignKey(
+        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
+    )
     description = models.TextField(
-        verbose_name=_("Description of the NFT given by the creator."), null=True, blank=True
+        verbose_name=_("Description of the NFT given by the creator."),
+        null=True,
+        blank=True,
     )
     owner = models.ForeignKey(
         "User",
@@ -91,21 +103,35 @@ class NFTCollection(MPTTModel):
 
 
 class User(MPTTModel):
-    uAdress = models.TextField(_("Address of the user coming from blockchain."), primary_key=True)
-    username = models.CharField(_("Unique name of the user set when signing up"), max_length=32, unique=True)
-    profilePicture = models.ImageField(_("User's profile picture"), null=True, blank=True, upload_to="media/")
-    mailAdress = models.TextField(_("Mail address of the user set when signing up"), unique=True)
+    uAdress = models.TextField(
+        _("Address of the user coming from blockchain."), primary_key=True
+    )
+    username = models.CharField(
+        _("Unique name of the user set when signing up"), max_length=32, unique=True
+    )
+    profilePicture = models.ImageField(
+        _("User's profile picture"), null=True, blank=True, upload_to="media/"
+    )
+    mailAdress = models.TextField(
+        _("Mail address of the user set when signing up"), unique=True
+    )
     favoritedNFTs = models.ManyToManyField(NFT, blank=True)
     watchListedNFTCollections = models.ManyToManyField(NFTCollection, blank=True)
-    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
+    parent = TreeForeignKey(
+        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
+    )
     password = models.CharField(
         _("Password of user"), max_length=100, null=False, default="0"
     )  # ADD SECURITY LATER lol
 
 
 class NFTCollectionCategory(MPTTModel):
-    name = models.CharField(_("Name of the NFT Collection Category."), primary_key=True, max_length=16)
-    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
+    name = models.CharField(
+        _("Name of the NFT Collection Category."), primary_key=True, max_length=16
+    )
+    parent = TreeForeignKey(
+        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
+    )
 
     class Meta:
         verbose_name_plural = "NFT Collection Categories"

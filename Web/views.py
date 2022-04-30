@@ -1,6 +1,6 @@
-
-from django.shortcuts import render
+from django.http import HttpResponse
 from rest_framework import generics
+from rest_framework.response import Response
 
 from .models import NFT, NFTCollection, NFTCollectionCategory, User
 from .serializers import (
@@ -9,29 +9,28 @@ from .serializers import (
     NFTSerializer,
     UserSerializer,
 )
+from rest_framework.decorators import api_view
 
 
-class NFTListView(generics.ListAPIView):
-    def get_queryset(self):
-        if self.request.method == "GET":
-            collectionName = self.request.query_params.get("collectionName")
-            creatorName = self.request.query_params.get("creatorName")
-            uid = self.request.query_params.get("uid")
-            nid = self.request.query_params.get("nID")
-            queryset = NFT.objects.all()
-            if collectionName:
-                queryset = queryset.filter(collectionName=collectionName)
-            if creatorName:
-                queryset = queryset.filter(creatorName=creatorName)
-            if uid:
-                queryset = queryset.filter(uid=uid)
-                if nid:
-                    queryset = queryset.filter(nID=nid)
-            return queryset
+@api_view(["GET", "POST", "PATCH", "DELETE"])
+def NFTListView(request):
 
+    if request.method == "GET":
+        queryset = NFT.objects.all().filter(**request.data)
+        queryset = NFTSerializer(queryset, many=True)
+        return Response(queryset.data)
+
+    elif request.method == "POST":
+        newNFTObject = NFTSerializer(data=request.data)
+        newNFTObject.is_valid(raise_exception=True)
+        newNFTObject.save()
+        return Response(newNFTObject.data)
+
+    elif request.method == "DELETE":
+        queryset = NFT.objects.all().filter(**request.data.dict())
+        queryset.delete()
+        return Response(status=200)
     # attributes
-
-    serializer_class = NFTSerializer
 
 
 class NFTCollectionListView(generics.ListAPIView):
@@ -46,6 +45,7 @@ class NFTCollectionListView(generics.ListAPIView):
             queryset = queryset.filter(owner=owner)
         if category:
             queryset = queryset.filter(category=category)
+        print("woop:", queryset.filter(NFT__pk=1))
         return queryset
 
     serializer_class = NFTCollectionSerializer
