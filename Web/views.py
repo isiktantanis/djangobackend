@@ -1,5 +1,6 @@
 from django.http import HttpResponse
 from rest_framework import generics
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from .models import NFT, NFTCollection, NFTCollectionCategory, User
@@ -9,7 +10,8 @@ from .serializers import (
     NFTSerializer,
     UserSerializer,
 )
-from rest_framework.decorators import api_view
+
+# TODO: [NFTMAR-145] Enable Cascading on Foreign Keys On "Patch" Requests
 
 
 @api_view(["GET", "POST", "PATCH", "DELETE"])
@@ -30,7 +32,16 @@ def NFTListView(request):
         queryset = NFT.objects.all().filter(**request.data.dict())
         queryset.delete()
         return Response(status=200)
+
+    elif request.method == "PATCH":
+        reqData = request.data.dict()
+        NFTToChange = NFT.objects.all().filter(uid=reqData["uid"], nID=reqData["nID"])
+        NFTToChange.update(**reqData)
+        if len(NFTToChange) == 0:
+            return Response(status=400)
+        return Response(status=200)
     # attributes
+
 
 @api_view(["GET", "POST", "PATCH", "DELETE"])
 def NFTCollectionListView(request):
@@ -50,6 +61,15 @@ def NFTCollectionListView(request):
         queryset.delete()
         return Response(status=200)
 
+    elif request.method == "PATCH":
+        reqData = request.data.dict()
+        NFTCollectionToChange = NFTCollection.objects.all().filter(name=reqData["name"])
+        NFTCollectionToChange.update(**reqData)
+        if len(NFTCollectionToChange) == 0:
+            return Response(status=400)
+        return Response(status=200)
+
+
 @api_view(["GET", "POST", "PATCH", "DELETE"])
 def UserListView(request):
     if request.method == "GET":
@@ -66,6 +86,14 @@ def UserListView(request):
     elif request.method == "DELETE":
         queryset = User.objects.all().filter(**request.data.dict())
         queryset.delete()
+        return Response(status=200)
+    # Username cannot change because it needs to be unique and NFT's are attributed to Username
+    elif request.method == "PATCH":
+        reqData = request.data.dict()
+        UserToChange = User.objects.all().filter(uAdress=reqData["uAdress"])
+        UserToChange.update(**reqData)
+        if len(UserToChange) == 0:
+            return Response(status=400)
         return Response(status=200)
 
 
@@ -87,6 +115,13 @@ def CategoryListView(request):
         queryset.delete()
         return Response(status=200)
 
+    elif request.method == "PATCH":
+        reqData = request.data.dict()
+        NFTCategoryToChange = NFTCollectionCategory.objects.all().filter(name=reqData["pk"])
+        if len(NFTCategoryToChange) == 0:
+            return Response(status=400)
+        NFTCategoryToChange.update(name=reqData["name"])
+        return Response(status=200)
 
 
 # Create your views here.
