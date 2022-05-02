@@ -38,7 +38,7 @@ class UserSerializer(serializers.ModelSerializer):
 class NFTCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = NFTCollection
-        fields = ["name", "description", "owner", "category"]
+        fields = ["name", "description", "owner", "category", "collectionImage"]
 
 
 class NFTCategorySerializer(serializers.ModelSerializer):

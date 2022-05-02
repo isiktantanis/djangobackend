@@ -45,9 +45,9 @@ class NFT(MPTTModel):
         verbose_name=_("Name"),
     )
     description = models.TextField(verbose_name=_("Description"), null=True)
-    metaDataType = models.CharField(verbose_name=_("metadata type"),
+    metaDataType = models.CharField(verbose_name=_("Metadata Type"),
                                     choices=[("video", "video"), ("audio", "audio"), ("image", "image")], max_length=5)
-    dataLink = models.URLField(verbose_name=_("data link"))
+    dataLink = models.URLField(verbose_name=_("Data Link"))
     # take this link and move it to database and create another link
     # TODO: [NFTMAR-130] MAKE USERS DELETABLE WITHOUT EFFECTING NFTS
 
@@ -83,7 +83,6 @@ class NFT(MPTTModel):
         verbose_name=_("File")
     )
 
-    # slug = models.SlugField(verbose_name=_("Category safe URL"), max_length=255, unique=True)
     parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
 
     def save(self, *args, **kwargs):
@@ -112,18 +111,18 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
             if len(os.listdir(directoryPath)) == 0:
                 os.rmdir(directoryPath)
 
-
+    # ADD LIKED BY NUMBER
 class NFTCollection(MPTTModel):
     name = models.CharField(max_length=128, primary_key=True, verbose_name=_("Name"))
-    # collectionImageLink = models.SlugField(verbose_name=_("Link of the image of collection"))
-    # ADD LIKED BY NUMBER
+    collectionImage = models.ImageField(_("Collection Image"), null=True, blank=True, storage=OverwriteStorage(),
+                                        upload_to=FileUploadLocation(parentFolder="NFTCollections/", fields=["name"]))
     parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
     description = models.TextField(verbose_name=_("Description"), null=True, blank=True)
     owner = models.ForeignKey(
         "User",
         to_field="username",
         related_name="owner",
-        verbose_name=_("Name of the creator of the NFT Collection."),
+        verbose_name=_("Name"),
         on_delete=models.SET("user_deleted"),  # SOR
         default="",
     )
@@ -136,6 +135,16 @@ class NFTCollection(MPTTModel):
         on_delete=models.SET("user_deleted"),  # SOR
         null=True,
     )
+
+@receiver(models.signals.post_delete, sender=NFTCollection)
+def auto_delete_file_on_delete(sender, instance, **kwargs):
+    """
+    Deletes file from filesystem
+    when corresponding `NFTCollection` object is deleted.
+    """
+    if instance.collectionImage:
+        if os.path.isfile(instance.collectionImage.path):
+            os.remove(instance.collectionImage.path)
 
 
 class User(MPTTModel):
@@ -161,8 +170,6 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
     if instance.profilePicture:
         if os.path.isfile(instance.profilePicture.path):
             os.remove(instance.profilePicture.path)
-
-
 
 class NFTCollectionCategory(MPTTModel):
     name = models.CharField(_("Name"), primary_key=True, max_length=16)
