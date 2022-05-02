@@ -6,8 +6,22 @@ from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from urllib.request import urlretrieve, urlcleanup
 from django.core.files import File  # you need this somewhere
+from django.utils.deconstruct import deconstructible
+from django.dispatch import receiver
 
-# Function for renaming the upload name of image files
+# Class for renaming the upload name of image files
+@deconstructible
+class FileUploadLocation(object):
+    def __init__(self, parentFolder, fields):
+        self.parentFolder = parentFolder
+        self.fields = fields
+
+    def __call__(self, instance, filename):
+        directoryWRTFields = ""
+        for field in self.fields:
+            directoryWRTFields += "{}/".format(instance.__dict__[field])
+        directoryWRTFields = directoryWRTFields[:-1]
+        return "{}/{}.{}".format(self.parentFolder, directoryWRTFields, filename.split(".")[-1])
 
 # Overrides the file with the same file name
 class OverwriteStorage(FileSystemStorage):
@@ -31,14 +45,14 @@ class NFT(MPTTModel):
         verbose_name=_("Name"),
     )
     description = models.TextField(verbose_name=_("Description"), null=True)
-    metaDataType = models.CharField(verbose_name=_("metadata type"), choices=[("video", "video"), ("audio", "audio"), ("image", "image")], max_length=5)  # video, audio, image
+    metaDataType = models.CharField(verbose_name=_("metadata type"),
+                                    choices=[("video", "video"), ("audio", "audio"), ("image", "image")], max_length=5)
     dataLink = models.URLField(verbose_name=_("data link"))
     # take this link and move it to database and create another link
     # TODO: [NFTMAR-130] MAKE USERS DELETABLE WITHOUT EFFECTING NFTS
 
     collectionName = models.ForeignKey(
         "NFTCollection",
-        related_name="collectionName",
         verbose_name=_("Collection Name"),
         on_delete=models.SET_NULL,  # SOR
         null=True,
@@ -56,13 +70,11 @@ class NFT(MPTTModel):
         verbose_name=_("Current Owner"),
         on_delete=models.SET("user_deleted"),  # SOR
     )
-    # 0: not on market, 1: on market but not on sale, 2: on market and on sale
     marketStatus = models.IntegerField(
         choices=[(0, "Not On Market"), (1, "Not On Sale"), (2, "On Sale")],
         verbose_name=_("Market Status"),
         default=0,
     )
-
     nftFile = models.FileField(
         upload_to="nfts/",
         blank=True,
@@ -85,6 +97,20 @@ class NFT(MPTTModel):
 
     class Meta:
         unique_together = ["uid", "nID"]
+
+@receiver(models.signals.post_delete, sender=NFT)
+def auto_delete_file_on_delete(sender, instance, **kwargs):
+    """
+    Deletes file from filesystem
+    when corresponding `User` object is deleted.
+    """
+    if instance.nftFile:
+        if os.path.isfile(instance.nftFile.path):
+            os.remove(instance.nftFile.path)
+        # remove the directory of the file is the directory is empty
+        directoryPath = instance.nftFile.path[:instance.nftFile.path.rfind("/")]
+        if len(os.listdir(directoryPath)) == 0:
+            os.rmdir(directoryPath)
 
 
 class NFTCollection(MPTTModel):
@@ -117,13 +143,12 @@ class NFTCollection(MPTTModel):
 
 
 class User(MPTTModel):
-
-    uAdress = models.TextField(_("Address"), primary_key=True)  # Address of the user coming from blockchain.
+    uAddress = models.TextField(_("Address"), primary_key=True)  # Address of the user coming from blockchain.
     username = models.CharField(_("Username"), max_length=32, unique=True)
     profilePicture = models.ImageField(_("Profile Picture"), null=True, blank=True,
-                                       upload_to="profilePictures/",
+                                       upload_to=FileUploadLocation(parentFolder="profilePictures/", fields=["username"]),
                                        storage=OverwriteStorage())
-    mailAdress = models.TextField(_("Email"), unique=True)
+    mailAdress = models.EmailField(_("Email"), unique=True, max_length=128)
     favoritedNFTs = models.ManyToManyField(NFT, blank=True)
     watchListedNFTCollections = models.ManyToManyField(NFTCollection, blank=True)
 
@@ -131,6 +156,17 @@ class User(MPTTModel):
         _("Password"), max_length=100, null=False, default="0"
     )  # ADD SECURITY LATER lol
     parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
+
+@receiver(models.signals.post_delete, sender=User)
+def auto_delete_file_on_delete(sender, instance, **kwargs):
+    """
+    Deletes file from filesystem
+    when corresponding `User` object is deleted.
+    """
+    if instance.profilePicture:
+        if os.path.isfile(instance.profilePicture.path):
+            os.remove(instance.profilePicture.path)
+
 
 
 class NFTCollectionCategory(MPTTModel):

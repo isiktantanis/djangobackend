@@ -17,6 +17,7 @@ class NFTSerializer(serializers.ModelSerializer):
             "creatorName",
             "currentOwner",
             "marketStatus",
+            "nftFile"
         ]
 
 
@@ -24,7 +25,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            "uAdress",
+            "uAddress",
             "username",
             "profilePicture",
             "mailAdress",

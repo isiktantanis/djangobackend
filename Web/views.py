@@ -90,7 +90,7 @@ def UserListView(request):
     # Username cannot change because it needs to be unique and NFT's are attributed to Username
     elif request.method == "PATCH":
         reqData = request.data.dict()
-        UserToChange = User.objects.all().filter(uAdress=reqData["uAdress"])
+        UserToChange = User.objects.all().filter(uAddress=reqData["uAddress"])
         UserToChange.update(**reqData)
         if len(UserToChange) == 0:
             return Response(status=400)
