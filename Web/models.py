@@ -107,22 +107,18 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
     if instance.nftFile:
         if os.path.isfile(instance.nftFile.path):
             os.remove(instance.nftFile.path)
-        # remove the directory of the file is the directory is empty
-        directoryPath = instance.nftFile.path[:instance.nftFile.path.rfind("/")]
-        if len(os.listdir(directoryPath)) == 0:
-            os.rmdir(directoryPath)
+            # remove the directory of the file is the directory is empty
+            directoryPath = instance.nftFile.path[:instance.nftFile.path.rfind("/")]
+            if len(os.listdir(directoryPath)) == 0:
+                os.rmdir(directoryPath)
 
 
 class NFTCollection(MPTTModel):
-    name = models.CharField(max_length=128, primary_key=True, verbose_name=_("Name of the NFT collection."))
+    name = models.CharField(max_length=128, primary_key=True, verbose_name=_("Name"))
     # collectionImageLink = models.SlugField(verbose_name=_("Link of the image of collection"))
     # ADD LIKED BY NUMBER
     parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
-    description = models.TextField(
-        verbose_name=_("Description of the NFT given by the creator."),
-        null=True,
-        blank=True,
-    )
+    description = models.TextField(verbose_name=_("Description"), null=True, blank=True)
     owner = models.ForeignKey(
         "User",
         to_field="username",
@@ -145,10 +141,9 @@ class NFTCollection(MPTTModel):
 class User(MPTTModel):
     uAddress = models.TextField(_("Address"), primary_key=True)  # Address of the user coming from blockchain.
     username = models.CharField(_("Username"), max_length=32, unique=True)
-    profilePicture = models.ImageField(_("Profile Picture"), null=True, blank=True,
-                                       upload_to=FileUploadLocation(parentFolder="profilePictures/", fields=["username"]),
-                                       storage=OverwriteStorage())
-    mailAdress = models.EmailField(_("Email"), unique=True, max_length=128)
+    profilePicture = models.ImageField(_("Profile Picture"), null=True, blank=True, storage=OverwriteStorage(),
+                                       upload_to=FileUploadLocation(parentFolder="profilePictures/", fields=["username"]))
+    mailAddress = models.EmailField(_("Email"), unique=True, max_length=128)
     favoritedNFTs = models.ManyToManyField(NFT, blank=True)
     watchListedNFTCollections = models.ManyToManyField(NFTCollection, blank=True)
 

@@ -28,7 +28,7 @@ class UserSerializer(serializers.ModelSerializer):
             "uAddress",
             "username",
             "profilePicture",
-            "mailAdress",
+            "mailAddress",
             "password"
             # "favouritedNFTs",
             # "watchListedNFTCollections",
