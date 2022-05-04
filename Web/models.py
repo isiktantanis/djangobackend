@@ -40,9 +40,7 @@ class OverwriteStorage(FileSystemStorage):
         return name
 
 
-# TODO: MAKE PRIMARY KEYS THE COMBINATION of UID and index
 class NFT(MPTTModel):
-    # ADD LIKED BY NUMBER
     UID = models.TextField(verbose_name=_("Unique ID"))
     index = models.IntegerField(verbose_name=_("index"))
     name = models.CharField(max_length=128, verbose_name=_("Name"))

@@ -133,18 +133,66 @@ def CategoryListView(request):
 @api_view(["GET", "POST", "DELETE"])
 def UserFavoritedNFTListView(request):
     if request.method == "GET":
-        queryset = UserFavoritedNFT.objects.all().filter(**request.data)
-        queryset = UserFavoritedNFTSerializer(queryset, many=True)
-        return Response(queryset.data)
+        # resolve primary key issue of NFT
+        if "nft" not in request.data.keys():
+            req = {}
+            if 'user' in request.data.keys():
+                req['user'] = request.data['user']
+            if "UID" in request.data.keys() and "index" in request.data.keys():
+                req["nft"] = NFT.objects.all().filter(uid=request.data["UID"], index=request.data["index"]).pk
+            favoriteItems = UserFavoritedNFT.objects.all().filter(**req)
+        else:
+            favoriteItems = UserFavoritedNFT.objects.all().filter(**request.data)
+
+        # give the client exactly what they want
+        # TODO: WRITE SOMETHING SMARTER here
+        if "user" in request.data.keys() and not ("nft" in request.data.keys() or "nft" in req.keys()):
+            queryset = favoriteItems.values_list('nft', flat=True)
+            nfts = NFT.objects.none()
+            for ID in queryset:
+                nfts = nfts.union(NFT.objects.filter(pk=ID))
+            nfts = NFTSerializer(nfts, many=True)
+            return Response(nfts.data)
+        elif "user" not in request.data.keys() and ("nft" in request.data.keys() or "nft" in req.keys()):
+            queryset = favoriteItems.values_list('user', flat=True)
+            users = User.objects.none()
+            for uAddress in queryset:
+                users = users.union(User.objects.filter(uAddress=uAddress))
+            users = UserSerializer(users, many=True)
+            return Response(users.data)
+        else:
+            favoriteItems = UserFavoritedNFTSerializer(favoriteItems, many=True)
+            return Response(favoriteItems.data)
 
     elif request.method == "POST":
-        newLike = UserFavoritedNFTSerializer(data=request.data)
+        # resolve primary key issue of NFT
+        if "nft" not in request.data.keys():
+            req = {}
+            if 'user' in request.data.keys():
+                req['user'] = request.data['user']
+            if "UID" in request.data.keys() and "index" in request.data.keys():
+                req["nft"] = NFT.objects.all().filter(uid=request.data["UID"], index=request.data["index"]).pk
+            newLike = UserFavoritedNFTSerializer(data=req)
+        else:
+            newLike = UserFavoritedNFTSerializer(data=request.data)
+
         newLike.is_valid(raise_exception=True)
         newLike.save()
         return Response(newLike.data, status=201)
 
     elif request.method == "DELETE":
-        queryset = UserFavoritedNFT.objects.all().filter(**request.data.dict())
+        reqDict = request.data.dict()
+        # resolve primary key issue of NFT
+        if "nft" not in reqDict.keys():
+            req = {}
+            if 'user' in reqDict.keys():
+                req['user'] = reqDict['user']
+            if "UID" in reqDict.keys() and "index" in reqDict.keys():
+                req["nft"] = NFT.objects.all().filter(uid=request.data["UID"], index=request.data["index"]).pk
+            queryset = UserFavoritedNFT.objects.all().filter(**req)
+        else:
+            queryset = UserFavoritedNFT.objects.all().filter(**reqDict)
+
         if len(queryset) == 0:
             return Response(status=400)
         queryset.delete()
@@ -154,9 +202,24 @@ def UserFavoritedNFTListView(request):
 @api_view(["GET", "POST", "DELETE"])
 def UserWatchListedNFTCollectionListView(request):
     if request.method == "GET":
-        queryset = UserWatchListedNFTCollection.objects.all().filter(**request.data)
-        queryset = UserWatchListedNFTCollectionSerializer(queryset, many=True)
-        return Response(queryset.data)
+        watchListItems = UserWatchListedNFTCollection.objects.all().filter(**request.data)
+        if "user" in request.data.keys() and "nftCollection" not in request.data.keys():
+            queryset = watchListItems.values_list('nftCollection', flat=True)
+            nftCollections = NFTCollection.objects.none()
+            for name in queryset:
+                nftCollections = nftCollections.union(NFTCollection.objects.filter(name=name))
+            nftCollections = NFTCollectionSerializer(nftCollections, many=True)
+            return Response(nftCollections.data)
+        elif "user" not in request.data.keys() and "nftCollection" in request.data.keys():
+            queryset = watchListItems.values_list('user', flat=True)
+            users = User.objects.none()
+            for uAddress in queryset:
+                users = users.union(User.objects.filter(uAddress=uAddress))
+            users = UserSerializer(users, many=True)
+            return Response(users.data)
+        else:
+            queryset = UserWatchListedNFTCollectionSerializer(watchListItems, many=True)
+            return Response(queryset.data)
 
     elif request.method == "POST":
         newLike = UserWatchListedNFTCollectionSerializer(data=request.data)
