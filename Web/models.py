@@ -226,7 +226,7 @@ class UserFavoritedNFT(MPTTModel):
     class Meta:
         unique_together = ["user", "nft"]
         db_table = "Favorites"
-
+    # TODO: CHECK IF SENDING THE SAME REQUEST EFFECTS ANYTHING?
     def save(self, *args, **kwargs):
         self.nft.numLikes += 1
         self.nft.save()
