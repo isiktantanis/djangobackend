@@ -39,11 +39,11 @@ class OverwriteStorage(FileSystemStorage):
             os.remove(os.path.join(settings.MEDIA_ROOT, name))
         return name
 
-
+# TODO: MAKE PRIMARY KEYS THE COMBINATION of UID and index
 class NFT(MPTTModel):
     # ADD LIKED BY NUMBER
-    uid = models.TextField(verbose_name=_("Unique ID"), primary_key=True)
-    nID = models.IntegerField(verbose_name=_("ID"))
+    UID = models.TextField(verbose_name=_("Unique ID"))
+    index = models.IntegerField(verbose_name=_("index"))
     name = models.CharField(max_length=128, verbose_name=_("Name"))
     description = models.TextField(verbose_name=_("Description"), null=True, blank=True)
     metaDataType = models.CharField(
@@ -68,7 +68,8 @@ class NFT(MPTTModel):
         upload_to="nfts/", blank=True, null=True, storage=OverwriteStorage(), verbose_name=_("File")
     )
     numLikes = models.IntegerField(default=0, verbose_name=_("Number of Likes"))
-    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
+    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children",
+                            editable=False)
 
     def __str__(self):
         return self.name
@@ -77,13 +78,13 @@ class NFT(MPTTModel):
         try:
             name, ext = urlretrieve(self.dataLink)
             extension = ext["Content-Type"].split("/")[-1]  # not so sure that it'd always work
-            self.nftFile.save("{}/{}.{}".format(self.uid, self.nID, extension), File(open(name, "rb")), False)
+            self.nftFile.save("{}/{}.{}".format(self.UID, self.index, extension), File(open(name, "rb")), False)
         finally:
             urlcleanup()
         super(NFT, self).save(*args, **kwargs)
 
     class Meta:
-        unique_together = ["uid", "nID"]
+        unique_together = ["UID", "index"]
 
 
 @receiver(models.signals.post_delete, sender=NFT)
@@ -112,7 +113,8 @@ class NFTCollection(MPTTModel):
         storage=OverwriteStorage(),
         upload_to=FileUploadLocation(parentFolder="NFTCollections/", fields=["name"]),
     )
-    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
+    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children",
+                            editable=False)
     description = models.TextField(verbose_name=_("Description"), null=True, blank=True)
     owner = models.ForeignKey(
         "User", to_field="username", related_name="owner", verbose_name=_("Name"), on_delete=models.SET("USER_DELETED")
@@ -141,7 +143,8 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
 
 class NFTCollectionCategory(MPTTModel):
     name = models.CharField(_("Name"), primary_key=True, max_length=16)
-    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
+    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children",
+                            editable=False)
 
     class Meta:
         verbose_name_plural = "NFT Collection Categories"
@@ -177,8 +180,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         upload_to=FileUploadLocation(parentFolder="profilePictures/", fields=["username"]),
     )
     email = models.EmailField(_("Email"), unique=True, max_length=128)
-    favoritedNFTs = models.ManyToManyField(NFT, blank=True)
-    watchListedNFTCollections = models.ManyToManyField(NFTCollection, blank=True)
     # needed IF foreign key constraint is chosen to be settled like this
     is_active = models.BooleanField(_("Active"), default=False)
     is_superuser = models.BooleanField(_("Superuser"), default=False)
@@ -191,6 +192,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.username
 
+    def save(self, *args, **kwargs):
+        if not self.is_active:
+            if self.profilePicture:
+                if os.path.isfile(self.profilePicture.path):
+                    os.remove(self.profilePicture.path)
+        super(User, self).save(*args, **kwargs)
 
 @receiver(models.signals.post_delete, sender=User)
 def auto_delete_file_on_delete(sender, instance, **kwargs):
@@ -201,3 +208,49 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
     if instance.profilePicture:
         if os.path.isfile(instance.profilePicture.path):
             os.remove(instance.profilePicture.path)
+
+class UserFavoritedNFT(MPTTModel):
+    user = models.ForeignKey("User", related_name="likes", verbose_name=_("User"), on_delete=models.CASCADE)
+    nft = models.ForeignKey("NFT", related_name="likedBy", verbose_name=_("NFT"), on_delete=models.CASCADE)
+    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children",
+                            editable=False)
+    def __str__(self):
+        return "{}-{}".format(self.user, self.nft)
+
+    class Meta:
+        unique_together = ["user", "nft"]
+        db_table = "Favorites"
+
+    def save(self, *args, **kwargs):
+        self.nft.numLikes += 1
+        super(UserFavoritedNFT, self).save(*args, **kwargs)
+
+@receiver(models.signals.post_delete, sender=UserFavoritedNFT)
+def decrease_like(sender, instance, **kwargs):
+    if instance.nft:
+        instance.nft.numLikes -= 1
+
+
+class UserWatchListedNFTCollection(MPTTModel):
+    user = models.ForeignKey("User", related_name="watchListed", verbose_name=_("User"), on_delete=models.CASCADE)
+    nftCollection = models.ForeignKey("NFTCollection", related_name="watchListedBy", verbose_name=_("NFT Collection"),
+                                      on_delete=models.CASCADE)
+    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children",
+                            editable=False)
+
+    def __str__(self):
+        return "{}-{}".format(self.user, self.nftCollection)
+
+    class Meta:
+        unique_together = ["user", "nftCollection"]
+        db_table = "WatchLists"
+
+    def save(self, *args, **kwargs):
+        self.nftCollection.numLikes += 1
+        super(UserWatchListedNFTCollection, self).save(*args, **kwargs)
+
+
+@receiver(models.signals.post_delete, sender=UserWatchListedNFTCollection)
+def decrease_like(sender, instance, **kwargs):
+    if instance.nftCollection:
+        instance.nftCollection.numLikes -= 1

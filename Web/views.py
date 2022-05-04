@@ -1,12 +1,14 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import NFT, NFTCollection, NFTCollectionCategory, User
+from .models import NFT, NFTCollection, NFTCollectionCategory, User, UserFavoritedNFT, UserWatchListedNFTCollection
 from .serializers import (
     NFTCategorySerializer,
     NFTCollectionSerializer,
     NFTSerializer,
     UserSerializer,
+    UserWatchListedNFTCollectionSerializer,
+    UserFavoritedNFTSerializer
 )
 
 # TODO: [NFTMAR-145] Enable Cascading on Foreign Keys On "Patch" Requests
@@ -34,7 +36,7 @@ def NFTListView(request):
 
     elif request.method == "PATCH":
         reqData = request.data.dict()
-        NFTToChange = NFT.objects.all().filter(uid=reqData["uid"], nID=reqData["nID"])
+        NFTToChange = NFT.objects.all().filter(UID=reqData["UID"], index=reqData["index"])
         NFTToChange.update(**reqData)
         if len(NFTToChange) == 0:
             return Response(status=400)
@@ -127,6 +129,50 @@ def CategoryListView(request):
             return Response(status=400)
         NFTCategoryToChange.update(name=reqData["name"])
         return Response(status=200)
+
+@api_view(["GET", "POST", "DELETE"])
+def UserFavoritedNFTListView(request):
+    if request.method == "GET":
+        queryset = UserFavoritedNFT.objects.all().filter(**request.data)
+        queryset = UserFavoritedNFTSerializer(queryset, many=True)
+        return Response(queryset.data)
+
+    elif request.method == "POST":
+        newLike = UserFavoritedNFTSerializer(data=request.data)
+        newLike.is_valid(raise_exception=True)
+        newLike.save()
+        return Response(newLike.data, status=201)
+
+    elif request.method == "DELETE":
+        queryset = UserFavoritedNFT.objects.all().filter(**request.data.dict())
+        if len(queryset) == 0:
+            return Response(status=400)
+        queryset.delete()
+        return Response(status=200)
+
+
+@api_view(["GET", "POST", "DELETE"])
+def UserWatchListedNFTCollectionListView(request):
+    if request.method == "GET":
+        queryset = UserWatchListedNFTCollection.objects.all().filter(**request.data)
+        queryset = UserWatchListedNFTCollectionSerializer(queryset, many=True)
+        return Response(queryset.data)
+
+    elif request.method == "POST":
+        newLike = UserWatchListedNFTCollectionSerializer(data=request.data)
+        newLike.is_valid(raise_exception=True)
+        newLike.save()
+        return Response(newLike.data, status=201)
+
+    elif request.method == "DELETE":
+        queryset = UserWatchListedNFTCollection.objects.all().filter(**request.data.dict())
+        if len(queryset) == 0:
+            return Response(status=400)
+        queryset.delete()
+        return Response(status=200)
+
+
+
 
 
 # Create your views here.

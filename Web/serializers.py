@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import NFT, NFTCollection, NFTCollectionCategory, User
+from .models import NFT, NFTCollection, NFTCollectionCategory, User, UserFavoritedNFT, UserWatchListedNFTCollection
 from djoser.serializers import UserCreateSerializer
 
 class UserCreateSerializer(UserCreateSerializer):
@@ -12,8 +12,8 @@ class NFTSerializer(serializers.ModelSerializer):
     class Meta:
         model = NFT
         fields = [
-            "uid",
-            "nID",
+            "UID",
+            "index",
             "name",
             "description",
             "metaDataType",
@@ -31,14 +31,22 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = "__all__"
 
-
 class NFTCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = NFTCollection
         fields = ["name", "description", "owner", "category", "collectionImage"]
 
-
 class NFTCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = NFTCollectionCategory
         fields = ["name"]
+
+class UserFavoritedNFTSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserFavoritedNFT
+        fields = "__all__"
+
+class UserWatchListedNFTCollectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserWatchListedNFTCollection
+        fields = "__all__"

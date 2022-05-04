@@ -2,7 +2,7 @@ from django.contrib import admin
 from mptt.admin import MPTTModelAdmin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import NFT, NFTCollection, NFTCollectionCategory, User
+from .models import NFT, NFTCollection, NFTCollectionCategory, User, UserWatchListedNFTCollection, UserFavoritedNFT
 
 class UserAdminConfig(UserAdmin):
     model = User
@@ -26,5 +26,7 @@ admin.site.register(User, UserAdminConfig)
 admin.site.register(NFT, MPTTModelAdmin)
 admin.site.register(NFTCollection, MPTTModelAdmin)
 admin.site.register(NFTCollectionCategory, MPTTModelAdmin)
+admin.site.register(UserFavoritedNFT, MPTTModelAdmin)
+admin.site.register(UserWatchListedNFTCollection, MPTTModelAdmin)
 
 # Register your models here.
