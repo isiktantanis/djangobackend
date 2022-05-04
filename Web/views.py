@@ -1,5 +1,3 @@
-from django.http import HttpResponse
-from rest_framework import generics
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -12,7 +10,6 @@ from .serializers import (
 )
 
 # TODO: [NFTMAR-145] Enable Cascading on Foreign Keys On "Patch" Requests
-
 
 @api_view(["GET", "POST", "PATCH", "DELETE"])
 def NFTListView(request):
@@ -30,6 +27,8 @@ def NFTListView(request):
 
     elif request.method == "DELETE":
         queryset = NFT.objects.all().filter(**request.data.dict())
+        if len(queryset) == 0:
+            return Response(status=400)
         queryset.delete()
         return Response(status=200)
 
@@ -58,6 +57,8 @@ def NFTCollectionListView(request):
 
     elif request.method == "DELETE":
         queryset = NFTCollection.objects.all().filter(**request.data.dict())
+        if len(queryset) == 0:
+            return Response(status=400)
         queryset.delete()
         return Response(status=200)
 
@@ -85,9 +86,11 @@ def UserListView(request):
 
     elif request.method == "DELETE":
         queryset = User.objects.all().filter(**request.data.dict())
+        if len(queryset) == 0:
+            return Response(status=400)
         queryset.delete()
         return Response(status=200)
-    # Username cannot change because it needs to be unique and NFT's are attributed to Username
+    # uAdress cannot change.
     elif request.method == "PATCH":
         reqData = request.data.dict()
         UserToChange = User.objects.all().filter(uAddress=reqData["uAddress"])
@@ -112,6 +115,8 @@ def CategoryListView(request):
 
     elif request.method == "DELETE":
         queryset = NFTCollectionCategory.objects.all().filter(**request.data.dict())
+        if len(queryset) == 0:
+            return Response(status=400)
         queryset.delete()
         return Response(status=200)
 
