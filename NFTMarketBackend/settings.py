@@ -179,5 +179,5 @@ DJOSER = {
         "user": "Web.serializers.UserCreateSerializer",
         "user_delete": "Web.serializers.UserDeleteSerializer",
     },
-    "EMAIL": {"activation": "Web.email.ActivationEmail"},
+    "EMAIL": {"activation": "Web.views.ActivationEmail"},
 }
