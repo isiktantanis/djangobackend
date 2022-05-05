@@ -1,17 +1,27 @@
+from asyncio.windows_events import NULL
+
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import NFT, NFTCollection, NFTCollectionCategory, User, UserFavoritedNFT, UserWatchListedNFTCollection
+from .models import (
+    NFT,
+    NFTCollection,
+    NFTCollectionCategory,
+    User,
+    UserFavoritedNFT,
+    UserWatchListedNFTCollection,
+)
 from .serializers import (
     NFTCategorySerializer,
     NFTCollectionSerializer,
     NFTSerializer,
+    UserFavoritedNFTSerializer,
     UserSerializer,
     UserWatchListedNFTCollectionSerializer,
-    UserFavoritedNFTSerializer
 )
 
 # TODO: [NFTMAR-145] Enable Cascading on Foreign Keys On "Patch" Requests
+
 
 @api_view(["GET", "POST", "PATCH", "DELETE"])
 def NFTListView(request):
@@ -90,7 +100,11 @@ def UserListView(request):
         queryset = User.objects.all().filter(**request.data.dict())
         if len(queryset) == 0:
             return Response(status=400)
-        queryset.delete()
+        # queryset.delete()
+        for user in queryset:
+            user.is_active = False
+            user.profilePicture = NULL
+            user.save()
         return Response(status=200)
     # uAdress cannot change.
     elif request.method == "PATCH":
@@ -130,14 +144,15 @@ def CategoryListView(request):
         NFTCategoryToChange.update(name=reqData["name"])
         return Response(status=200)
 
+
 @api_view(["GET", "POST", "DELETE"])
 def UserFavoritedNFTListView(request):
     if request.method == "GET":
         # resolve primary key issue of NFT
         if "nft" not in request.data.keys():
             req = {}
-            if 'user' in request.data.keys():
-                req['user'] = request.data['user']
+            if "user" in request.data.keys():
+                req["user"] = request.data["user"]
             if "UID" in request.data.keys() and "index" in request.data.keys():
                 req["nft"] = NFT.objects.all().filter(UID=request.data["UID"], index=request.data["index"])[0].id
             favoriteItems = UserFavoritedNFT.objects.all().filter(**req)
@@ -147,14 +162,14 @@ def UserFavoritedNFTListView(request):
         # give the client exactly what they want
         # TODO: WRITE SOMETHING SMARTER here
         if "user" in request.data.keys() and not ("nft" in request.data.keys() or "nft" in req.keys()):
-            queryset = favoriteItems.values_list('nft', flat=True)
+            queryset = favoriteItems.values_list("nft", flat=True)
             nfts = NFT.objects.none()
             for ID in queryset:
                 nfts = nfts.union(NFT.objects.filter(pk=ID))
             nfts = NFTSerializer(nfts, many=True)
             return Response(nfts.data)
         elif "user" not in request.data.keys() and ("nft" in request.data.keys() or "nft" in req.keys()):
-            queryset = favoriteItems.values_list('user', flat=True)
+            queryset = favoriteItems.values_list("user", flat=True)
             users = User.objects.none()
             for uAddress in queryset:
                 users = users.union(User.objects.filter(uAddress=uAddress))
@@ -168,8 +183,8 @@ def UserFavoritedNFTListView(request):
         # resolve primary key issue of NFT
         if "nft" not in request.data.keys():
             req = {}
-            if 'user' in request.data.keys():
-                req['user'] = request.data['user']
+            if "user" in request.data.keys():
+                req["user"] = request.data["user"]
             if "UID" in request.data.keys() and "index" in request.data.keys():
                 req["nft"] = NFT.objects.all().filter(UID=request.data["UID"], index=request.data["index"])[0].id
             newLike = UserFavoritedNFTSerializer(data=req)
@@ -185,8 +200,8 @@ def UserFavoritedNFTListView(request):
         # resolve primary key issue of NFT
         if "nft" not in reqDict.keys():
             req = {}
-            if 'user' in reqDict.keys():
-                req['user'] = reqDict['user']
+            if "user" in reqDict.keys():
+                req["user"] = reqDict["user"]
             if "UID" in reqDict.keys() and "index" in reqDict.keys():
                 req["nft"] = NFT.objects.all().filter(UID=request.data["UID"], index=request.data["index"])[0].id
             queryset = UserFavoritedNFT.objects.all().filter(**req)
@@ -204,14 +219,14 @@ def UserWatchListedNFTCollectionListView(request):
     if request.method == "GET":
         watchListItems = UserWatchListedNFTCollection.objects.all().filter(**request.data)
         if "user" in request.data.keys() and "nftCollection" not in request.data.keys():
-            queryset = watchListItems.values_list('nftCollection', flat=True)
+            queryset = watchListItems.values_list("nftCollection", flat=True)
             nftCollections = NFTCollection.objects.none()
             for name in queryset:
                 nftCollections = nftCollections.union(NFTCollection.objects.filter(name=name))
             nftCollections = NFTCollectionSerializer(nftCollections, many=True)
             return Response(nftCollections.data)
         elif "user" not in request.data.keys() and "nftCollection" in request.data.keys():
-            queryset = watchListItems.values_list('user', flat=True)
+            queryset = watchListItems.values_list("user", flat=True)
             users = User.objects.none()
             for uAddress in queryset:
                 users = users.union(User.objects.filter(uAddress=uAddress))
@@ -233,9 +248,6 @@ def UserWatchListedNFTCollectionListView(request):
             return Response(status=400)
         queryset.delete()
         return Response(status=200)
-
-
-
 
 
 # Create your views here.
