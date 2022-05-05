@@ -139,7 +139,7 @@ def UserFavoritedNFTListView(request):
             if 'user' in request.data.keys():
                 req['user'] = request.data['user']
             if "UID" in request.data.keys() and "index" in request.data.keys():
-                req["nft"] = NFT.objects.all().filter(uid=request.data["UID"], index=request.data["index"]).pk
+                req["nft"] = NFT.objects.all().filter(UID=request.data["UID"], index=request.data["index"])[0].id
             favoriteItems = UserFavoritedNFT.objects.all().filter(**req)
         else:
             favoriteItems = UserFavoritedNFT.objects.all().filter(**request.data)
@@ -171,7 +171,7 @@ def UserFavoritedNFTListView(request):
             if 'user' in request.data.keys():
                 req['user'] = request.data['user']
             if "UID" in request.data.keys() and "index" in request.data.keys():
-                req["nft"] = NFT.objects.all().filter(uid=request.data["UID"], index=request.data["index"]).pk
+                req["nft"] = NFT.objects.all().filter(UID=request.data["UID"], index=request.data["index"])[0].id
             newLike = UserFavoritedNFTSerializer(data=req)
         else:
             newLike = UserFavoritedNFTSerializer(data=request.data)
@@ -188,7 +188,7 @@ def UserFavoritedNFTListView(request):
             if 'user' in reqDict.keys():
                 req['user'] = reqDict['user']
             if "UID" in reqDict.keys() and "index" in reqDict.keys():
-                req["nft"] = NFT.objects.all().filter(uid=request.data["UID"], index=request.data["index"]).pk
+                req["nft"] = NFT.objects.all().filter(UID=request.data["UID"], index=request.data["index"])[0].id
             queryset = UserFavoritedNFT.objects.all().filter(**req)
         else:
             queryset = UserFavoritedNFT.objects.all().filter(**reqDict)
