@@ -14,40 +14,45 @@ from .models import (
 class UserCreateSerializer(UserCreateSerializer):
     class Meta(UserCreateSerializer.Meta):
         model = User
-        fields = "__all__"
+        fields = ['uAddress', 'last_login', 'username', 'profilePicture', 'email', 'is_active', 'is_superuser',
+                  'is_staff', 'date_joined']
 
 
 class NFTSerializer(serializers.ModelSerializer):
     class Meta:
         model = NFT
-        fields = "__all__"
+        fields = ['id', 'UID', 'index', 'name', 'description', 'metaDataType', 'dataLink', 'marketStatus', 'nftFile',
+                  'numLikes', 'collectionName', 'creator', 'currentOwner']
+
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = "__all__"
+        fields = ['uAddress', 'last_login', 'username', 'profilePicture', 'email', 'is_active', 'is_superuser',
+                  'is_staff', 'date_joined']
+
 
 
 class NFTCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = NFTCollection
-        fields = "__all__"
+        fields = ['name', 'collectionImage', 'description', 'numLikes', 'owner', 'category']
 
 
 class NFTCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = NFTCollectionCategory
-        fields = "__all__"
+        fields = ["name"]
 
 
 class UserFavoritedNFTSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserFavoritedNFT
-        fields = "__all__"
+        fields = ["nft", "user"]
 
 
 class UserWatchListedNFTCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserWatchListedNFTCollection
-        fields = "__all__"
+        fields = ["nftCollection", "user"]
