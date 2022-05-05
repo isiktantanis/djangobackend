@@ -13,6 +13,10 @@
 {% trans "Thanks for using our site!" %}
 
 {% blocktrans %}The {{ site_name }} team{% endblocktrans %}
+
+{% endblock %}
+
+{% block html_body %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -252,5 +256,6 @@ window.onclick = function(event) {
 
 </body>
 </html>
-{% endblock text_body %}
+{% endblock %}
+
 
