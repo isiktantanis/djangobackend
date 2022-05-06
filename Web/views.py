@@ -1,11 +1,5 @@
-from asyncio.windows_events import NULL
-
-from django.contrib.auth.tokens import default_token_generator
-from djoser import utils
-from djoser.conf import settings
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from templated_mail.mail import BaseEmailMessage
 
 from .models import (
     NFT,
@@ -110,7 +104,7 @@ def UserListView(request):
         # queryset.delete()
         for user in queryset:
             user.is_active = False
-            user.profilePicture = NULL
+            user.profilePicture = None
             user.save()
         return Response(status=200)
     # uAdress cannot change.
@@ -255,20 +249,6 @@ def UserWatchListedNFTCollectionListView(request):
             return Response(status=400)
         queryset.delete()
         return Response(status=200)
-
-
-class ActivationEmail(BaseEmailMessage):
-    template_name = "email/activation.html"
-
-    def get_context_data(self):
-        # ActivationEmail can be deleted
-        context = super().get_context_data()
-
-        user = context.get("user")
-        context["uid"] = utils.encode_uid(user.pk)
-        context["token"] = default_token_generator.make_token(user)
-        context["url"] = settings.ACTIVATION_URL.format(**context)
-        return context
 
 
 # Create your views here.

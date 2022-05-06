@@ -202,15 +202,19 @@ class User(AbstractBaseUser, PermissionsMixin):
         super(User, self).save(*args, **kwargs)
 
 
-@receiver(models.signals.post_delete, sender=User)
+@receiver(models.signals.pre_save, sender=User)
 def auto_delete_file_on_delete(sender, instance, **kwargs):
     """
     Deletes file from filesystem
-    when corresponding `User` object is deleted.
+    when corresponding `User` object gets deactivated.
     """
-    if instance.profilePicture:
-        if os.path.isfile(instance.profilePicture.path):
-            os.remove(instance.profilePicture.path)
+    try:
+        old_user = sender.objects.get(pk=instance.pk)
+        if old_user.profilePicture and not instance.is_active and old_user.is_active:
+            if os.path.isfile(old_user.profilePicture.path):
+                os.remove(old_user.profilePicture.path)
+    except:
+        pass
 
 
 class UserFavoritedNFT(MPTTModel):
