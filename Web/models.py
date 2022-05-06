@@ -144,12 +144,28 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
 
 class NFTCollectionCategory(MPTTModel):
     name = models.CharField(_("Name"), primary_key=True, max_length=16)
+    backgroundPicture = models.ImageField(_("Background Picture"), storage=OverwriteStorage())
+    foregroundPicture = models.ImageField(_("Foreground Picture"), storage=OverwriteStorage())
     parent = TreeForeignKey(
         "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children", editable=False
     )
 
     class Meta:
         verbose_name_plural = "NFT Collection Categories"
+
+@receiver(models.signals.post_delete, sender=NFTCollectionCategory)
+def auto_delete_file_on_delete(sender, instance, **kwargs):
+    """
+    Deletes file from filesystem
+    when corresponding `NFTCollectionCategory` object is deleted.
+    """
+    if instance.backgroundPicture:
+        if os.path.isfile(instance.backgroundPicture.path):
+            os.remove(instance.backgroundPicture.path)
+
+    if instance.foregroundPicture:
+        if os.path.isfile(instance.foregroundPicture.path):
+            os.remove(instance.foregroundPicture.path)
 
 
 class AccountManager(BaseUserManager):
