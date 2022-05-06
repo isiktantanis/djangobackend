@@ -6,6 +6,7 @@ from .models import (
     NFT,
     NFTCollection,
     NFTCollectionCategory,
+    TransHist,
     User,
     UserFavoritedNFT,
     UserWatchListedNFTCollection,
@@ -46,5 +47,6 @@ admin.site.register(NFTCollection, MPTTModelAdmin)
 admin.site.register(NFTCollectionCategory, MPTTModelAdmin)
 admin.site.register(UserFavoritedNFT, MPTTModelAdmin)
 admin.site.register(UserWatchListedNFTCollection, MPTTModelAdmin)
+admin.site.register(TransHist, MPTTModelAdmin)
 
 # Register your models here.

@@ -9,6 +9,7 @@ from django.contrib.auth.models import (
 )
 from django.core.files import File  # you need this somewhere
 from django.core.files.storage import FileSystemStorage
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.dispatch import receiver
 from django.utils import timezone
@@ -153,6 +154,7 @@ class NFTCollectionCategory(MPTTModel):
     class Meta:
         verbose_name_plural = "NFT Collection Categories"
 
+
 @receiver(models.signals.post_delete, sender=NFTCollectionCategory)
 def auto_delete_file_on_delete(sender, instance, **kwargs):
     """
@@ -288,3 +290,15 @@ def decrease_like(sender, instance, **kwargs):
     if instance.nftCollection:
         instance.nftCollection.numLikes -= 1
         instance.nftCollection.save()
+
+
+class TransHist(MPTTModel):
+    oldOwner = models.ForeignKey("User", related_name="oldUser", verbose_name=_("Old User"), on_delete=models.CASCADE)
+    newOwner = models.ForeignKey("User", related_name="newUser", verbose_name=_("New User"), on_delete=models.CASCADE)
+    price = models.IntegerField(verbose_name=_("Price"), validators=[MinValueValidator(1)])
+    time = models.DateTimeField(_("Time of Transaction"), default=timezone.now)
+    nft = models.ForeignKey("NFT", related_name="nft", verbose_name=_("NFT"), on_delete=models.CASCADE, null=True)
+
+    parent = TreeForeignKey(
+        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children", editable=False
+    )

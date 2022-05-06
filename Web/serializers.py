@@ -5,6 +5,7 @@ from .models import (
     NFT,
     NFTCollection,
     NFTCollectionCategory,
+    TransHist,
     User,
     UserFavoritedNFT,
     UserWatchListedNFTCollection,
@@ -14,40 +15,71 @@ from .models import (
 class UserCreateSerializer(UserCreateSerializer):
     class Meta(UserCreateSerializer.Meta):
         model = User
-        fields = ['uAddress', 'last_login', 'username', 'profilePicture', 'email', 'is_active', 'is_superuser',
-                  'is_staff', 'date_joined']
+        fields = [
+            "uAddress",
+            "last_login",
+            "username",
+            "profilePicture",
+            "email",
+            "is_active",
+            "is_superuser",
+            "is_staff",
+            "date_joined",
+        ]
+
 
 class UserDeleteSerializer(UserCreateSerializer):
     class Meta(UserCreateSerializer.Meta):
         model = User
-        fields = ['password']
+        fields = ["password"]
+
 
 class NFTSerializer(serializers.ModelSerializer):
     class Meta:
         model = NFT
-        fields = ['id', 'UID', 'index', 'name', 'description', 'metaDataType', 'dataLink', 'marketStatus', 'nftFile',
-                  'numLikes', 'collectionName', 'creator', 'currentOwner']
-
+        fields = [
+            "id",
+            "UID",
+            "index",
+            "name",
+            "description",
+            "metaDataType",
+            "dataLink",
+            "marketStatus",
+            "nftFile",
+            "numLikes",
+            "collectionName",
+            "creator",
+            "currentOwner",
+        ]
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['uAddress', 'last_login', 'username', 'profilePicture', 'email', 'is_active', 'is_superuser',
-                  'is_staff', 'date_joined']
-
+        fields = [
+            "uAddress",
+            "last_login",
+            "username",
+            "profilePicture",
+            "email",
+            "is_active",
+            "is_superuser",
+            "is_staff",
+            "date_joined",
+        ]
 
 
 class NFTCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = NFTCollection
-        fields = ['name', 'collectionImage', 'description', 'numLikes', 'owner', 'category']
+        fields = ["name", "collectionImage", "description", "numLikes", "owner", "category"]
 
 
 class NFTCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = NFTCollectionCategory
-        fields = ["name"]
+        fields = ["name", "backgroundPicture", "foregroundPicture"]
 
 
 class UserFavoritedNFTSerializer(serializers.ModelSerializer):
@@ -60,3 +92,9 @@ class UserWatchListedNFTCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserWatchListedNFTCollection
         fields = ["nftCollection", "user"]
+
+
+class TransHistSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TransHist
+        fields = ["oldOwner", "newOwner", "price", "time", "nft"]

@@ -5,6 +5,7 @@ from .models import (
     NFT,
     NFTCollection,
     NFTCollectionCategory,
+    TransHist,
     User,
     UserFavoritedNFT,
     UserWatchListedNFTCollection,
@@ -13,6 +14,7 @@ from .serializers import (
     NFTCategorySerializer,
     NFTCollectionSerializer,
     NFTSerializer,
+    TransHistSerializer,
     UserFavoritedNFTSerializer,
     UserSerializer,
     UserWatchListedNFTCollectionSerializer,
@@ -251,3 +253,20 @@ def UserWatchListedNFTCollectionListView(request):
         return Response(status=200)
 
 
+@api_view(["GET", "POST", "DELETE"])
+def TransHistListView(request):
+    if request.method == "GET":
+        queryset = TransHist.objects.all().filter(**request.data)
+        queryset = TransHist(queryset, many=True)
+        return Response(queryset.data)
+    elif request.method == "POST":
+        newTransHistObject = TransHistSerializer(data=request.data)
+        newTransHistObject.is_valid(raise_exception=True)
+        newTransHistObject.save()
+        return Response(newTransHistObject.data)
+    elif request.method == "DELETE":
+        queryset = TransHist.objects.all().filter(**request.data.dict())
+        if len(queryset) == 0:
+            return Response(status=400)
+        queryset.delete()
+        return Response(status=200)
