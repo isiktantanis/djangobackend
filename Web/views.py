@@ -199,17 +199,16 @@ def UserFavoritedNFTListView(request):
         return Response(newLike.data, status=201)
 
     elif request.method == "DELETE":
-        reqDict = request.data.dict()
         # resolve primary key issue of NFT
-        if "nft" not in reqDict.keys():
+        if "nft" not in request.data.keys():
             req = {}
-            if "user" in reqDict.keys():
-                req["user"] = reqDict["user"]
-            if "UID" in reqDict.keys() and "index" in reqDict.keys():
+            if "user" in request.data.keys():
+                req["user"] = request.data["user"]
+            if "UID" in request.data.keys() and "index" in request.data.keys():
                 req["nft"] = NFT.objects.all().filter(UID=request.data["UID"], index=request.data["index"])[0].id
             queryset = UserFavoritedNFT.objects.all().filter(**req)
         else:
-            queryset = UserFavoritedNFT.objects.all().filter(**reqDict)
+            queryset = UserFavoritedNFT.objects.all().filter(**request.data)
 
         if len(queryset) == 0:
             return Response(status=400)
