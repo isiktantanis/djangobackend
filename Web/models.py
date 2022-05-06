@@ -297,7 +297,7 @@ class TransHist(MPTTModel):
     newOwner = models.ForeignKey("User", related_name="newUser", verbose_name=_("New User"), on_delete=models.CASCADE)
     price = models.IntegerField(verbose_name=_("Price"), validators=[MinValueValidator(1)])
     time = models.DateTimeField(_("Time of Transaction"), default=timezone.now)
-    nft = models.ForeignKey("NFT", related_name="nft", verbose_name=_("NFT"), on_delete=models.CASCADE, null=True)
+    nft = models.ForeignKey("NFT", related_name="nft", verbose_name=_("NFT"), on_delete=models.CASCADE)
 
     parent = TreeForeignKey(
         "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children", editable=False
