@@ -28,7 +28,10 @@ class FileUploadLocation(object):
     def __call__(self, instance, filename):
         directoryWRTFields = ""
         for field in self.fields:
-            directoryWRTFields += "{}/".format(instance.__dict__[field])
+            if field in instance.__dict__.keys():
+                directoryWRTFields += "{}/".format(instance.__dict__[field])
+            else:
+                directoryWRTFields += "{}/".format(field)
         directoryWRTFields = directoryWRTFields[:-1]
         return "{}/{}.{}".format(self.parentFolder, directoryWRTFields, filename.split(".")[-1])
 
@@ -119,8 +122,8 @@ class NFTCollection(MPTTModel):
     )
     description = models.TextField(verbose_name=_("Description"), null=True, blank=True)
     owner = models.ForeignKey(
-        "User", to_field="username", related_name="owner", verbose_name=_("Name"), on_delete=models.SET("USER_DELETED")
-    )
+        "User", to_field="username", related_name="NFTCollection", verbose_name=_("Owner"),
+        on_delete=models.SET("USER_DELETED"))
     category = models.ForeignKey(
         "NFTCollectionCategory",
         to_field="name",
@@ -145,8 +148,12 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
 
 class NFTCollectionCategory(MPTTModel):
     name = models.CharField(_("Name"), primary_key=True, max_length=16)
-    backgroundPicture = models.ImageField(_("Background Picture"), storage=OverwriteStorage())
-    foregroundPicture = models.ImageField(_("Foreground Picture"), storage=OverwriteStorage())
+    backgroundPicture = models.ImageField(_("Background Picture"), storage=OverwriteStorage(),
+                                          upload_to=FileUploadLocation(parentFolder="Categories/",
+                                                                       fields=["name", "background"]))
+    foregroundPicture = models.ImageField(_("Foreground Picture"), storage=OverwriteStorage(),
+                                          upload_to=FileUploadLocation(parentFolder="Categories/",
+                                                                       fields=["name", "foreground"]))
     parent = TreeForeignKey(
         "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children", editable=False
     )
