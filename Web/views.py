@@ -251,4 +251,3 @@ def UserWatchListedNFTCollectionListView(request):
         return Response(status=200)
 
 
-# Create your views here.

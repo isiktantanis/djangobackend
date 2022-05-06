@@ -17,6 +17,10 @@ class UserCreateSerializer(UserCreateSerializer):
         fields = ['uAddress', 'last_login', 'username', 'profilePicture', 'email', 'is_active', 'is_superuser',
                   'is_staff', 'date_joined']
 
+class UserDeleteSerializer(UserCreateSerializer):
+    class Meta(UserCreateSerializer.Meta):
+        model = User
+        fields = ['password']
 
 class NFTSerializer(serializers.ModelSerializer):
     class Meta:
