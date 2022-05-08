@@ -46,7 +46,9 @@ def NFTListView(request):
 
     elif request.method == "PATCH":
         reqData = request.data.dict()
-        NFTToChange = NFT.objects.all().filter(UID=reqData["UID"], index=reqData["index"])
+        NFTToChange = NFT.objects.all().filter(
+            UID=reqData["UID"], index=reqData["index"]
+        )
         NFTToChange.update(**reqData)
         if len(NFTToChange) == 0:
             return Response(status=400)
@@ -141,7 +143,9 @@ def CategoryListView(request):
 
     elif request.method == "PATCH":
         reqData = request.data.dict()
-        NFTCategoryToChange = NFTCollectionCategory.objects.all().filter(name=reqData["pk"])
+        NFTCategoryToChange = NFTCollectionCategory.objects.all().filter(
+            name=reqData["pk"]
+        )
         if len(NFTCategoryToChange) == 0:
             return Response(status=400)
         NFTCategoryToChange.update(name=reqData["name"])
@@ -158,21 +162,29 @@ def UserFavoritedNFTListView(request):
             if "user" in reqData.keys():
                 req["user"] = reqData["user"]
             if "UID" in reqData.keys() and "index" in reqData.keys():
-                req["nft"] = NFT.objects.all().filter(UID=reqData["UID"], index=reqData["index"])[0].id
+                req["nft"] = (
+                    NFT.objects.all()
+                    .filter(UID=reqData["UID"], index=reqData["index"])[0]
+                    .id
+                )
             favoriteItems = UserFavoritedNFT.objects.all().filter(**req)
         else:
             favoriteItems = UserFavoritedNFT.objects.all().filter(**reqData)
 
         # give the client exactly what they want
         # TODO: WRITE SOMETHING SMARTER here
-        if "user" in request.data.keys() and not ("nft" in request.data.keys() or "nft" in req.keys()):
+        if "user" in request.data.keys() and not (
+            "nft" in request.data.keys() or "nft" in req.keys()
+        ):
             queryset = favoriteItems.values_list("nft", flat=True)
             nfts = NFT.objects.none()
             for ID in queryset:
                 nfts = nfts.union(NFT.objects.filter(pk=ID))
             nfts = NFTSerializer(nfts, many=True)
             return Response(nfts.data)
-        elif "user" not in request.data.keys() and ("nft" in request.data.keys() or "nft" in req.keys()):
+        elif "user" not in request.data.keys() and (
+            "nft" in request.data.keys() or "nft" in req.keys()
+        ):
             queryset = favoriteItems.values_list("user", flat=True)
             users = User.objects.none()
             for uAddress in queryset:
@@ -190,7 +202,11 @@ def UserFavoritedNFTListView(request):
             if "user" in request.data.keys():
                 req["user"] = request.data["user"]
             if "UID" in request.data.keys() and "index" in request.data.keys():
-                req["nft"] = NFT.objects.all().filter(UID=request.data["UID"], index=request.data["index"])[0].id
+                req["nft"] = (
+                    NFT.objects.all()
+                    .filter(UID=request.data["UID"], index=request.data["index"])[0]
+                    .id
+                )
             newLike = UserFavoritedNFTSerializer(data=req)
         else:
             newLike = UserFavoritedNFTSerializer(data=request.data)
@@ -206,7 +222,11 @@ def UserFavoritedNFTListView(request):
             if "user" in request.data.keys():
                 req["user"] = request.data["user"]
             if "UID" in request.data.keys() and "index" in request.data.keys():
-                req["nft"] = NFT.objects.all().filter(UID=request.data["UID"], index=request.data["index"])[0].id
+                req["nft"] = (
+                    NFT.objects.all()
+                    .filter(UID=request.data["UID"], index=request.data["index"])[0]
+                    .id
+                )
             queryset = UserFavoritedNFT.objects.all().filter(**req)
         else:
             queryset = UserFavoritedNFT.objects.all().filter(**request.data)
@@ -226,7 +246,9 @@ def UserWatchListedNFTCollectionListView(request):
             queryset = watchListItems.values_list("nftCollection", flat=True)
             nftCollections = NFTCollection.objects.none()
             for name in queryset:
-                nftCollections = nftCollections.union(NFTCollection.objects.filter(name=name))
+                nftCollections = nftCollections.union(
+                    NFTCollection.objects.filter(name=name)
+                )
             nftCollections = NFTCollectionSerializer(nftCollections, many=True)
             return Response(nftCollections.data)
         elif "user" not in reqData.keys() and "nftCollection" in reqData.keys():

@@ -6,8 +6,8 @@ from django.urls import include, path
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("Web.urls", namespace="Web")),
-    path('auth/', include('djoser.urls.jwt')),
-    path('auth/', include('djoser.urls')),
+    path("auth/", include("djoser.urls.jwt")),
+    path("auth/", include("djoser.urls")),
 ]
 
 if settings.DEBUG:

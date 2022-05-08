@@ -28,7 +28,6 @@ DEBUG = True
 ALLOWED_HOSTS = ["10.0.2.2", "localhost", "127.0.0.1"]
 
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -42,13 +41,13 @@ INSTALLED_APPS = [
     "mptt",
     "rest_framework",
     "djoser",
-    'corsheaders',
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    'corsheaders.middleware.CorsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -140,7 +139,9 @@ REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
-    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
 }
 
 SIMPLE_JWT = {
@@ -180,7 +181,7 @@ DJOSER = {
     "SERIALIZERS": {
         "user_create": "Web.serializers.UserCreateSerializer",
         "user": "Web.serializers.UserCreateSerializer",
-        'current_user': "Web.serializers.UserCreateSerializer"
+        "current_user": "Web.serializers.UserCreateSerializer",
     },
     "EMAIL": {"activation": "Web.email.ActivationEmail"},
     "TOKEN_MODEL": None,

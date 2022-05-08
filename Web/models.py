@@ -33,7 +33,9 @@ class FileUploadLocation(object):
             else:
                 directoryWRTFields += "{}/".format(field)
         directoryWRTFields = directoryWRTFields[:-1]
-        return "{}/{}.{}".format(self.parentFolder, directoryWRTFields, filename.split(".")[-1])
+        return "{}/{}.{}".format(
+            self.parentFolder, directoryWRTFields, filename.split(".")[-1]
+        )
 
 
 # Overrides the file with the same file name
@@ -58,21 +60,40 @@ class NFT(MPTTModel):
     # take this link and move it to database and create another link
     # TODO: [NFTMAR-130] MAKE USERS DELETABLE WITHOUT EFFECTING NFTS
     collectionName = models.ForeignKey(
-        "NFTCollection", verbose_name=_("Collection Name"), on_delete=models.SET_NULL, null=True
+        "NFTCollection",
+        verbose_name=_("Collection Name"),
+        on_delete=models.SET_NULL,
+        null=True,
     )
     creator = models.ForeignKey(
-        "User", related_name="creator", verbose_name=_("Creator"), on_delete=models.SET("USER_DELETED")
+        "User",
+        related_name="creator",
+        verbose_name=_("Creator"),
+        on_delete=models.SET("USER_DELETED"),
     )
-    currentOwner = models.ForeignKey("User", verbose_name=_("Current Owner"), on_delete=models.SET("USER_DELETED"))
+    currentOwner = models.ForeignKey(
+        "User", verbose_name=_("Current Owner"), on_delete=models.SET("USER_DELETED")
+    )
     marketStatus = models.IntegerField(
-        verbose_name=_("Market Status"), default=0, choices=[(0, "Not On Market"), (1, "Not On Sale"), (2, "On Sale")]
+        verbose_name=_("Market Status"),
+        default=0,
+        choices=[(0, "Not On Market"), (1, "Not On Sale"), (2, "On Sale")],
     )
     nftFile = models.FileField(
-        upload_to="nfts/", blank=True, null=True, storage=OverwriteStorage(), verbose_name=_("File")
+        upload_to="nfts/",
+        blank=True,
+        null=True,
+        storage=OverwriteStorage(),
+        verbose_name=_("File"),
     )
     numLikes = models.IntegerField(default=0, verbose_name=_("Number of Likes"))
     parent = TreeForeignKey(
-        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children", editable=False
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children",
+        editable=False,
     )
 
     def __str__(self):
@@ -81,8 +102,14 @@ class NFT(MPTTModel):
     def save(self, *args, **kwargs):
         try:
             name, ext = urlretrieve(self.dataLink)
-            extension = ext["Content-Type"].split("/")[-1]  # not so sure that it'd always work
-            self.nftFile.save("{}/{}.{}".format(self.UID, self.index, extension), File(open(name, "rb")), False)
+            extension = ext["Content-Type"].split("/")[
+                -1
+            ]  # not so sure that it'd always work
+            self.nftFile.save(
+                "{}/{}.{}".format(self.UID, self.index, extension),
+                File(open(name, "rb")),
+                False,
+            )
         finally:
             urlcleanup()
         super(NFT, self).save(*args, **kwargs)
@@ -118,12 +145,21 @@ class NFTCollection(MPTTModel):
         upload_to=FileUploadLocation(parentFolder="NFTCollections/", fields=["name"]),
     )
     parent = TreeForeignKey(
-        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children", editable=False
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children",
+        editable=False,
     )
     description = models.TextField(verbose_name=_("Description"), null=True, blank=True)
     owner = models.ForeignKey(
-        "User", to_field="username", related_name="NFTCollection", verbose_name=_("Owner"),
-        on_delete=models.SET("USER_DELETED"))
+        "User",
+        to_field="username",
+        related_name="NFTCollection",
+        verbose_name=_("Owner"),
+        on_delete=models.SET("USER_DELETED"),
+    )
     category = models.ForeignKey(
         "NFTCollectionCategory",
         to_field="name",
@@ -148,14 +184,27 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
 
 class NFTCollectionCategory(MPTTModel):
     name = models.CharField(_("Name"), primary_key=True, max_length=16)
-    backgroundPicture = models.ImageField(_("Background Picture"), storage=OverwriteStorage(),
-                                          upload_to=FileUploadLocation(parentFolder="Categories/",
-                                                                       fields=["name", "background"]))
-    foregroundPicture = models.ImageField(_("Foreground Picture"), storage=OverwriteStorage(),
-                                          upload_to=FileUploadLocation(parentFolder="Categories/",
-                                                                       fields=["name", "foreground"]))
+    backgroundPicture = models.ImageField(
+        _("Background Picture"),
+        storage=OverwriteStorage(),
+        upload_to=FileUploadLocation(
+            parentFolder="Categories/", fields=["name", "background"]
+        ),
+    )
+    foregroundPicture = models.ImageField(
+        _("Foreground Picture"),
+        storage=OverwriteStorage(),
+        upload_to=FileUploadLocation(
+            parentFolder="Categories/", fields=["name", "foreground"]
+        ),
+    )
     parent = TreeForeignKey(
-        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children", editable=False
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children",
+        editable=False,
     )
 
     class Meta:
@@ -197,21 +246,27 @@ class AccountManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    uAddress = models.TextField(_("Address"), primary_key=True)  # Address of the user coming from blockchain.
+    uAddress = models.TextField(
+        _("Address"), primary_key=True
+    )  # Address of the user coming from blockchain.
     username = models.CharField(_("Username"), max_length=32, unique=True)
     profilePicture = models.ImageField(
         _("Profile Picture"),
         null=True,
         blank=True,
         storage=OverwriteStorage(),
-        upload_to=FileUploadLocation(parentFolder="profilePictures/", fields=["username"]),
+        upload_to=FileUploadLocation(
+            parentFolder="profilePictures/", fields=["username"]
+        ),
     )
     email = models.EmailField(_("Email"), unique=True, max_length=128)
     # needed IF foreign key constraint is chosen to be settled like this
     is_active = models.BooleanField(_("Active"), default=False)
     is_superuser = models.BooleanField(_("Superuser"), default=False)
     is_staff = models.BooleanField(_("Staff"), default=False)
-    date_joined = models.DateTimeField(_("Join Date"), default=timezone.now, editable=False)
+    date_joined = models.DateTimeField(
+        _("Join Date"), default=timezone.now, editable=False
+    )
     objects = AccountManager()
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = ["email", "uAddress"]
@@ -243,10 +298,19 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
 
 
 class UserFavoritedNFT(MPTTModel):
-    user = models.ForeignKey("User", related_name="likes", verbose_name=_("User"), on_delete=models.CASCADE)
-    nft = models.ForeignKey("NFT", related_name="likedBy", verbose_name=_("NFT"), on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        "User", related_name="likes", verbose_name=_("User"), on_delete=models.CASCADE
+    )
+    nft = models.ForeignKey(
+        "NFT", related_name="likedBy", verbose_name=_("NFT"), on_delete=models.CASCADE
+    )
     parent = TreeForeignKey(
-        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children", editable=False
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children",
+        editable=False,
     )
 
     def __str__(self):
@@ -271,12 +335,25 @@ def decrease_like(sender, instance, **kwargs):
 
 
 class UserWatchListedNFTCollection(MPTTModel):
-    user = models.ForeignKey("User", related_name="watchListed", verbose_name=_("User"), on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        "User",
+        related_name="watchListed",
+        verbose_name=_("User"),
+        on_delete=models.CASCADE,
+    )
     nftCollection = models.ForeignKey(
-        "NFTCollection", related_name="watchListedBy", verbose_name=_("NFT Collection"), on_delete=models.CASCADE
+        "NFTCollection",
+        related_name="watchListedBy",
+        verbose_name=_("NFT Collection"),
+        on_delete=models.CASCADE,
     )
     parent = TreeForeignKey(
-        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children", editable=False
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children",
+        editable=False,
     )
 
     def __str__(self):
@@ -300,12 +377,31 @@ def decrease_like(sender, instance, **kwargs):
 
 
 class TransHist(MPTTModel):
-    oldOwner = models.ForeignKey("User", related_name="oldUser", verbose_name=_("Old User"), on_delete=models.CASCADE)
-    newOwner = models.ForeignKey("User", related_name="newUser", verbose_name=_("New User"), on_delete=models.CASCADE)
-    price = models.IntegerField(verbose_name=_("Price"), validators=[MinValueValidator(1)])
+    oldOwner = models.ForeignKey(
+        "User",
+        related_name="oldUser",
+        verbose_name=_("Old User"),
+        on_delete=models.CASCADE,
+    )
+    newOwner = models.ForeignKey(
+        "User",
+        related_name="newUser",
+        verbose_name=_("New User"),
+        on_delete=models.CASCADE,
+    )
+    price = models.IntegerField(
+        verbose_name=_("Price"), validators=[MinValueValidator(1)]
+    )
     time = models.DateTimeField(_("Time of Transaction"), default=timezone.now)
-    nft = models.ForeignKey("NFT", related_name="nft", verbose_name=_("NFT"), on_delete=models.CASCADE)
+    nft = models.ForeignKey(
+        "NFT", related_name="nft", verbose_name=_("NFT"), on_delete=models.CASCADE
+    )
 
     parent = TreeForeignKey(
-        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children", editable=False
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children",
+        editable=False,
     )

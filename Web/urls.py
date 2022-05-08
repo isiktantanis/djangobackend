@@ -14,5 +14,9 @@ urlpatterns = [
     path("api/users/", views.UserListView, name="User_home"),
     path("api/categories/", views.CategoryListView, name="Category_home"),
     path("api/favorites/", views.UserFavoritedNFTListView, name="Favorites_home"),
-    path("api/watchLists/", views.UserWatchListedNFTCollectionListView, name="WatchLists_home")
+    path(
+        "api/watchLists/",
+        views.UserWatchListedNFTCollectionListView,
+        name="WatchLists_home",
+    ),
 ]

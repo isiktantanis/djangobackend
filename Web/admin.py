@@ -16,7 +16,15 @@ from .models import (
 class UserAdminConfig(UserAdmin):
     model = User
     ordering = ("username",)
-    list_display = ("uAddress", "username", "email", "is_active", "is_superuser", "is_staff", "date_joined")
+    list_display = (
+        "uAddress",
+        "username",
+        "email",
+        "is_active",
+        "is_superuser",
+        "is_staff",
+        "date_joined",
+    )
     list_filter = ()
     fieldsets = ()
     exclude = ("last_login", "date_joined")
