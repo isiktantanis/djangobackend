@@ -163,7 +163,7 @@ EMAIL_HOST_USER = "isiktantanis@gmail.com"
 EMAIL_HOST_PASSWORD = "kygfusizinhjeimt"
 EMAIL_USE_TLS = True
 
-DOMAIN = "localhost:8000"
+DOMAIN = "localhost:3000"
 SITE_NAME = "SUNFT"
 
 DJOSER = {
