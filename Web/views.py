@@ -157,18 +157,16 @@ def UserFavoritedNFTListView(request):
     if request.method == "GET":
         # resolve primary key issue of NFT
         reqData = request.GET.dict()
-
         req = {}
         if "user" in reqData.keys():
             req["user"] = reqData["user"]
         if "UID" in reqData.keys() and "index" in reqData.keys():
-            req["nft"] = (
-                NFT.objects.all()
-                .filter(UID=reqData["UID"], index=reqData["index"])[0]
-                .id
-            )
+            req["nft"] = NFT.objects.filter(UID=reqData["UID"], index=reqData["index"])
+            if len(req["nft"]) == 0:
+                return Response([])
+            req["nft"] = req["nft"][0].id
         favoriteItems = UserFavoritedNFT.objects.all().filter(**req)
-
+        print(favoriteItems)
         # give the client exactly what they want
         # TODO: WRITE SOMETHING SMARTER here
 
