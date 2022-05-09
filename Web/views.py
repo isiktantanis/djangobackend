@@ -157,40 +157,31 @@ def UserFavoritedNFTListView(request):
     if request.method == "GET":
         # resolve primary key issue of NFT
         reqData = request.GET.dict()
-        if "nft" not in reqData.keys():
-            req = {}
-            if "user" in reqData.keys():
-                req["user"] = reqData["user"]
-            if "UID" in reqData.keys() and "index" in reqData.keys():
-                req["nft"] = (
-                    NFT.objects.all()
-                    .filter(UID=reqData["UID"], index=reqData["index"])[0]
-                    .id
-                )
-            favoriteItems = UserFavoritedNFT.objects.all().filter(**req)
-        else:
-            favoriteItems = UserFavoritedNFT.objects.all().filter(**reqData)
+
+        req = {}
+        if "user" in reqData.keys():
+            req["user"] = reqData["user"]
+        if "UID" in reqData.keys() and "index" in reqData.keys():
+            req["nft"] = (
+                NFT.objects.all()
+                .filter(UID=reqData["UID"], index=reqData["index"])[0]
+                .id
+            )
+        favoriteItems = UserFavoritedNFT.objects.all().filter(**req)
 
         # give the client exactly what they want
         # TODO: WRITE SOMETHING SMARTER here
-        if "user" in request.data.keys() and not (
-            "nft" in request.data.keys() or "nft" in req.keys()
-        ):
+
+        if "user" in req.keys() and "nft" not in req.keys():
             queryset = favoriteItems.values_list("nft", flat=True)
-            nfts = NFT.objects.none()
-            for ID in queryset:
-                nfts = nfts.union(NFT.objects.filter(pk=ID))
-            nfts = NFTSerializer(nfts, many=True)
-            return Response(nfts.data)
-        elif "user" not in request.data.keys() and (
-            "nft" in request.data.keys() or "nft" in req.keys()
-        ):
+            nfts = NFT.objects.filter(pk__in=queryset)
+            nftsData = NFTSerializer(nfts, many=True).data
+            return Response(nftsData)
+        elif "user" not in req.keys() and "nft" in req.keys():
             queryset = favoriteItems.values_list("user", flat=True)
-            users = User.objects.none()
-            for uAddress in queryset:
-                users = users.union(User.objects.filter(uAddress=uAddress))
-            users = UserSerializer(users, many=True)
-            return Response(users.data)
+            users = User.objects.filter(uAddress__in=queryset)
+            usersData = UserSerializer(users, many=True).data
+            return Response(usersData)
         else:
             favoriteItems = UserFavoritedNFTSerializer(favoriteItems, many=True)
             return Response(favoriteItems.data)
