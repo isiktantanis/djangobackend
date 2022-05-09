@@ -19,4 +19,5 @@ urlpatterns = [
         views.UserWatchListedNFTCollectionListView,
         name="WatchLists_home",
     ),
+    path("api/transactionHistory", views.TransHistListView, name="TransHistHome"),
 ]
