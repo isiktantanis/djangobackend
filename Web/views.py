@@ -233,11 +233,8 @@ def UserWatchListedNFTCollectionListView(request):
         watchListItems = UserWatchListedNFTCollection.objects.all().filter(**reqData)
         if "user" in reqData.keys() and "nftCollection" not in reqData.keys():
             queryset = watchListItems.values_list("nftCollection", flat=True)
-            nftCollections = NFTCollection.objects.none()
-            for name in queryset:
-                nftCollections = nftCollections.union(
-                    NFTCollection.objects.filter(name=name)
-                )
+            nftCollections = NFTCollection.objects.filter(name__in=queryset)
+
             nftCollections = NFTCollectionSerializer(nftCollections, many=True)
             return Response(nftCollections.data)
         elif "user" not in reqData.keys() and "nftCollection" in reqData.keys():
