@@ -267,7 +267,7 @@ def UserWatchListedNFTCollectionListView(request):
 def TransHistListView(request):
     if request.method == "GET":
         queryset = TransHist.objects.all().filter(**request.GET.dict())
-        queryset = TransHist(queryset, many=True)
+        queryset = TransHistSerializer(queryset, many=True)
         return Response(queryset.data)
     elif request.method == "POST":
         newTransHistObject = TransHistSerializer(data=request.data)
