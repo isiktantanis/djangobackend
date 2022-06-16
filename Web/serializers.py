@@ -80,6 +80,7 @@ class NFTCollectionSerializer(serializers.ModelSerializer):
             "numLikes",
             "owner",
             "category",
+            "totalNFTLikes",
         ]
 
 

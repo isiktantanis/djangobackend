@@ -33,9 +33,7 @@ class FileUploadLocation(object):
             else:
                 directoryWRTFields += "{}/".format(field)
         directoryWRTFields = directoryWRTFields[:-1]
-        return "{}/{}.{}".format(
-            self.parentFolder, directoryWRTFields, filename.split(".")[-1]
-        )
+        return "{}/{}.{}".format(self.parentFolder, directoryWRTFields, filename.split(".")[-1])
 
 
 # Overrides the file with the same file name
@@ -71,9 +69,7 @@ class NFT(MPTTModel):
         verbose_name=_("Creator"),
         on_delete=models.SET("USER_DELETED"),
     )
-    currentOwner = models.ForeignKey(
-        "User", verbose_name=_("Current Owner"), on_delete=models.SET("USER_DELETED")
-    )
+    currentOwner = models.ForeignKey("User", verbose_name=_("Current Owner"), on_delete=models.SET("USER_DELETED"))
     marketStatus = models.IntegerField(
         verbose_name=_("Market Status"),
         default=0,
@@ -102,9 +98,7 @@ class NFT(MPTTModel):
     def save(self, *args, **kwargs):
         try:
             name, ext = urlretrieve(self.dataLink)
-            extension = ext["Content-Type"].split("/")[
-                -1
-            ]  # not so sure that it'd always work
+            extension = ext["Content-Type"].split("/")[-1]  # not so sure that it'd always work
             self.nftFile.save(
                 "{}/{}.{}".format(self.UID, self.index, extension),
                 File(open(name, "rb")),
@@ -169,6 +163,9 @@ class NFTCollection(MPTTModel):
         on_delete=models.SET("USER_DELETED"),
     )
     numLikes = models.IntegerField(default=0, verbose_name=_("Number of Likes"))
+    totalNFTLikes = models.IntegerField(
+        default=0, verbose_name=_("Total Number of Likes of all NFT's inside the Collection")
+    )
 
 
 @receiver(models.signals.post_delete, sender=NFTCollection)
@@ -187,16 +184,12 @@ class NFTCollectionCategory(MPTTModel):
     backgroundPicture = models.ImageField(
         _("Background Picture"),
         storage=OverwriteStorage(),
-        upload_to=FileUploadLocation(
-            parentFolder="Categories/", fields=["name", "background"]
-        ),
+        upload_to=FileUploadLocation(parentFolder="Categories/", fields=["name", "background"]),
     )
     foregroundPicture = models.ImageField(
         _("Foreground Picture"),
         storage=OverwriteStorage(),
-        upload_to=FileUploadLocation(
-            parentFolder="Categories/", fields=["name", "foreground"]
-        ),
+        upload_to=FileUploadLocation(parentFolder="Categories/", fields=["name", "foreground"]),
     )
     parent = TreeForeignKey(
         "self",
@@ -246,27 +239,21 @@ class AccountManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    uAddress = models.TextField(
-        _("Address"), primary_key=True
-    )  # Address of the user coming from blockchain.
+    uAddress = models.TextField(_("Address"), primary_key=True)  # Address of the user coming from blockchain.
     username = models.CharField(_("Username"), max_length=32, unique=True)
     profilePicture = models.ImageField(
         _("Profile Picture"),
         null=True,
         blank=True,
         storage=OverwriteStorage(),
-        upload_to=FileUploadLocation(
-            parentFolder="profilePictures/", fields=["username"]
-        ),
+        upload_to=FileUploadLocation(parentFolder="profilePictures/", fields=["username"]),
     )
     email = models.EmailField(_("Email"), unique=True, max_length=128)
     # needed IF foreign key constraint is chosen to be settled like this
     is_active = models.BooleanField(_("Active"), default=False)
     is_superuser = models.BooleanField(_("Superuser"), default=False)
     is_staff = models.BooleanField(_("Staff"), default=False)
-    date_joined = models.DateTimeField(
-        _("Join Date"), default=timezone.now, editable=False
-    )
+    date_joined = models.DateTimeField(_("Join Date"), default=timezone.now, editable=False)
     objects = AccountManager()
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = ["email", "uAddress"]
@@ -298,12 +285,8 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
 
 
 class UserFavoritedNFT(MPTTModel):
-    user = models.ForeignKey(
-        "User", related_name="likes", verbose_name=_("User"), on_delete=models.CASCADE
-    )
-    nft = models.ForeignKey(
-        "NFT", related_name="likedBy", verbose_name=_("NFT"), on_delete=models.CASCADE
-    )
+    user = models.ForeignKey("User", related_name="likes", verbose_name=_("User"), on_delete=models.CASCADE)
+    nft = models.ForeignKey("NFT", related_name="likedBy", verbose_name=_("NFT"), on_delete=models.CASCADE)
     parent = TreeForeignKey(
         "self",
         on_delete=models.CASCADE,
@@ -323,7 +306,9 @@ class UserFavoritedNFT(MPTTModel):
     # TODO: CHECK IF SENDING THE SAME REQUEST EFFECTS ANYTHING?
     def save(self, *args, **kwargs):
         self.nft.numLikes += 1
+        self.nft.collectionName.totalNFTLikes += 1
         self.nft.save()
+        self.nft.collectionName.save()
         super(UserFavoritedNFT, self).save(*args, **kwargs)
 
 
@@ -331,7 +316,9 @@ class UserFavoritedNFT(MPTTModel):
 def decrease_like(sender, instance, **kwargs):
     if instance.nft:
         instance.nft.numLikes -= 1
+        instance.nft.collectionName.totalNFTLikes -= 1
         instance.nft.save()
+        instance.nft.collectionName.save()
 
 
 class UserWatchListedNFTCollection(MPTTModel):
@@ -389,13 +376,9 @@ class TransHist(MPTTModel):
         verbose_name=_("New User"),
         on_delete=models.CASCADE,
     )
-    price = models.IntegerField(
-        verbose_name=_("Price"), validators=[MinValueValidator(1)]
-    )
+    price = models.IntegerField(verbose_name=_("Price"), validators=[MinValueValidator(1)])
     time = models.DateTimeField(_("Time of Transaction"), default=timezone.now)
-    nft = models.ForeignKey(
-        "NFT", related_name="nft", verbose_name=_("NFT"), on_delete=models.CASCADE
-    )
+    nft = models.ForeignKey("NFT", related_name="nft", verbose_name=_("NFT"), on_delete=models.CASCADE)
 
     parent = TreeForeignKey(
         "self",
