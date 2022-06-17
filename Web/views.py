@@ -1,3 +1,6 @@
+from datetime import date, datetime
+
+from django.db.models import Count, Max
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -279,3 +282,63 @@ def TransHistListView(request):
             return Response(status=400)
         queryset.delete()
         return Response(status=200)
+
+
+@api_view(["GET"])
+def HottestListView(request):
+    if request.method == "GET":
+        reqData = (
+            request.GET.dict()
+        )  # Will be given one of [nft, user, collection] and one of [DAY, MONTH, YEAR, ALLTIME]
+        for i in reqData.keys():
+            print(i)
+        if "nft" in reqData.keys():
+            transQuery = TransHist.objects.all()
+            currentTime = date.today()
+            if "DAY" in reqData.keys():
+                transQuery = transQuery.filter(
+                    time__year=currentTime.year, time__month=currentTime.month, time__day=currentTime.day
+                )
+            elif "MONTH" in reqData.keys():
+                transQuery = transQuery.filter(time__year=currentTime.year, time__month=currentTime.month)
+            elif "YEAR" in reqData.keys():
+                transQuery = transQuery.filter(time__year=currentTime.year)
+            valueSet = transQuery.values("nft").order_by().annotate(nft__count=Count("nft"))
+            print(valueSet)
+            finalSet = (valueSet.order_by("-nft__count")[:5]).values("nft")
+            print(finalSet)
+            queryset = NFT.objects.filter(id__in=finalSet)
+            queryset = NFTSerializer(queryset, many=True)
+            return Response(queryset.data)
+        if "user" in reqData.keys():
+            transQuery = TransHist.objects.filter(nft=reqData["oldOwner"])
+            currentTime = date.today()
+            if "DAY" in reqData.keys():
+                transQuery = transQuery.filter(
+                    time__year=currentTime.year, time__month=currentTime.month, time__day=currentTime.day
+                )
+            elif "MONTH" in reqData.keys():
+                transQuery = transQuery.filter(time__year=currentTime.year, time__month=currentTime.month)
+            elif "YEAR" in reqData.keys():
+                transQuery = transQuery.filter(time__year=currentTime.year)
+            valueSet = TransHist.objects.values("oldOwner").order_by().annotate(oldOwner__count=Count("oldOwner"))
+            finalSet = valueSet.order_by("oldOwner__count")[:5]
+            queryset = User.objects.filter(id__in=finalSet)
+            queryset = NFTSerializer(queryset, many=True)
+            return Response(queryset.data)
+        if "collection" in reqData.keys():
+            transQuery = TransHist.objects.filter(nft=reqData["nft"])
+            currentTime = date.today()
+            if "DAY" in reqData.keys():
+                transQuery = transQuery.filter(
+                    time__year=currentTime.year, time__month=currentTime.month, time__day=currentTime.day
+                )
+            elif "MONTH" in reqData.keys():
+                transQuery = transQuery.filter(time__year=currentTime.year, time__month=currentTime.month)
+            elif "YEAR" in reqData.keys():
+                transQuery = transQuery.filter(time__year=currentTime.year)
+            valueSet = TransHist.objects.values("nft").order_by().annotate(nft__count=Count("nft"))
+            finalSet = valueSet.order_by("nft__count")[:5]
+            queryset = NFT.objects.filter(id__in=finalSet)
+            queryset = NFTSerializer(queryset, many=True)
+            return Response(queryset.data)
