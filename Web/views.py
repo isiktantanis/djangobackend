@@ -311,7 +311,7 @@ def HottestListView(request):
             queryset = NFTSerializer(queryset, many=True)
             return Response(queryset.data)
         if "user" in reqData.keys():
-            transQuery = TransHist.objects.filter(nft=reqData["oldOwner"])
+            transQuery = TransHist.objects.all()
             currentTime = date.today()
             if "DAY" in reqData.keys():
                 transQuery = transQuery.filter(
@@ -321,7 +321,7 @@ def HottestListView(request):
                 transQuery = transQuery.filter(time__year=currentTime.year, time__month=currentTime.month)
             elif "YEAR" in reqData.keys():
                 transQuery = transQuery.filter(time__year=currentTime.year)
-            valueSet = TransHist.objects.values("oldOwner").order_by().annotate(oldOwner__count=Count("oldOwner"))
+            valueSet = transQuery.values("oldOwner").order_by().annotate(oldOwner__count=Count("oldOwner"))
             finalSet = valueSet.order_by("oldOwner__count")[:5]
             queryset = User.objects.filter(id__in=finalSet)
             queryset = NFTSerializer(queryset, many=True)
