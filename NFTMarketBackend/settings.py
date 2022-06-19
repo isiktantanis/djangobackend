@@ -124,7 +124,7 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "build/static")]
 
-STATIC_ROOT = "/home/MertD/django_backend/NFTMarketBackend/static"
+STATIC_ROOT = "/home/MertD/django_backend/static"
 # os.path.join(BASE_DIR, "static")
 
 AUTH_USER_MODEL = "Web.User"
