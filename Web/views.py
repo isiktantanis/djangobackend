@@ -327,18 +327,6 @@ def HottestListView(request):
             queryset = NFTSerializer(queryset, many=True)
             return Response(queryset.data)
         if "collection" in reqData.keys():
-            transQuery = TransHist.objects.filter(nft=reqData["nft"])
-            currentTime = date.today()
-            if "DAY" in reqData.keys():
-                transQuery = transQuery.filter(
-                    time__year=currentTime.year, time__month=currentTime.month, time__day=currentTime.day
-                )
-            elif "MONTH" in reqData.keys():
-                transQuery = transQuery.filter(time__year=currentTime.year, time__month=currentTime.month)
-            elif "YEAR" in reqData.keys():
-                transQuery = transQuery.filter(time__year=currentTime.year)
-            valueSet = TransHist.objects.values("nft").order_by().annotate(nft__count=Count("nft"))
-            finalSet = valueSet.order_by("nft__count")[:5]
-            queryset = NFT.objects.filter(id__in=finalSet)
-            queryset = NFTSerializer(queryset, many=True)
+            queryset = NFTCollection.objects.all()
+            queryset = queryset.order_by("numLikes")[:5]
             return Response(queryset.data)
