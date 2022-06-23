@@ -322,9 +322,11 @@ def HottestListView(request):
             elif "YEAR" in reqData.keys():
                 transQuery = transQuery.filter(time__year=currentTime.year)
             valueSet = transQuery.values("oldOwner").order_by().annotate(oldOwner__count=Count("oldOwner"))
-            finalSet = valueSet.order_by("oldOwner__count")[:5]
-            queryset = User.objects.filter(id__in=finalSet)
-            queryset = NFTSerializer(queryset, many=True)
+            print(valueSet)
+            finalSet = valueSet.order_by("-oldOwner__count")[:5].values("oldOwner")
+            print(finalSet)
+            queryset = User.objects.filter(uAddress__in=finalSet)
+            queryset = UserSerializer(queryset, many=True)
             return Response(queryset.data)
         if "collection" in reqData.keys():
             valueSet = NFTCollection.objects.all().order_by('-numLikes')[:5]
