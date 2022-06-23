@@ -327,6 +327,7 @@ def HottestListView(request):
             queryset = NFTSerializer(queryset, many=True)
             return Response(queryset.data)
         if "collection" in reqData.keys():
-            queryset = NFTCollection.objects.all()
-            queryset = queryset.order_by("numLikes")[:5]
+            valueSet = NFTCollection.objects.all().order_by('-numLikes')[:5]
+            print(valueSet)
+            queryset = NFTCollectionSerializer(valueSet, many=True)
             return Response(queryset.data)
