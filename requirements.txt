@@ -1,0 +1,7 @@
+django
+pillow
+django-mptt
+djangorestframework
+djangorestframework_simplejwt
+djoser
+django-cors-headers

@@ -1,0 +1,5 @@
+.vscode/
+venv/
+.idea/
+
+.NFTMarketBackend/__pycache__/
