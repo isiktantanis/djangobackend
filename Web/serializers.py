@@ -60,14 +60,13 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             "uAddress",
-            "last_login",
             "username",
             "profilePicture",
             "email",
             "is_active",
-            "is_superuser",
-            "is_staff",
             "date_joined",
+            "totalCollectionLikes",
+            "totalNFTLikes"
         ]
 
 

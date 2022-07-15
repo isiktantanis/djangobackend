@@ -309,10 +309,10 @@ class UserFavoritedNFT(MPTTModel):
     # TODO: CHECK IF SENDING THE SAME REQUEST EFFECTS ANYTHING?
     def save(self, *args, **kwargs):
         self.nft.numLikes += 1
-        self.nft.address.totalNFTLikes += 1
+        self.nft.collection.totalNFTLikes += 1
         self.user.totalNFTLikes += 1
         self.nft.save()
-        self.nft.collectionName.save()
+        self.nft.collection.save()
         self.user.save()
         super(UserFavoritedNFT, self).save(*args, **kwargs)
 
@@ -321,9 +321,9 @@ class UserFavoritedNFT(MPTTModel):
 def decrease_like(sender, instance, **kwargs):
     if instance.nft:
         instance.nft.numLikes -= 1
-        instance.nft.collectionName.totalNFTLikes -= 1
+        instance.nft.collection.totalNFTLikes -= 1
         instance.nft.save()
-        instance.nft.collectionName.save()
+        instance.nft.collection.save()
 
 
 class UserWatchListedNFTCollection(MPTTModel):
