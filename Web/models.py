@@ -45,8 +45,14 @@ class OverwriteStorage(FileSystemStorage):
 
 
 class NFT(MPTTModel):
-    UID = models.TextField(verbose_name=_("Unique ID"))
-    index = models.IntegerField(verbose_name=_("index"))
+    collection = models.ForeignKey(
+        "NFTCollection",
+        verbose_name=_("Collection"),
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='+',
+    )
+    nID = models.IntegerField(verbose_name=_("nID"))
     name = models.CharField(max_length=128, verbose_name=_("Name"))
     description = models.TextField(verbose_name=_("Description"), null=True, blank=True)
     metaDataType = models.CharField(
@@ -57,12 +63,6 @@ class NFT(MPTTModel):
     dataLink = models.URLField(verbose_name=_("Data Link"))
     # take this link and move it to database and create another link
     # TODO: [NFTMAR-130] MAKE USERS DELETABLE WITHOUT EFFECTING NFTS
-    collectionName = models.ForeignKey(
-        "NFTCollection",
-        verbose_name=_("Collection Name"),
-        on_delete=models.SET_NULL,
-        null=True,
-    )
     creator = models.ForeignKey(
         "User",
         related_name="creator",
@@ -100,7 +100,7 @@ class NFT(MPTTModel):
             name, ext = urlretrieve(self.dataLink)
             extension = ext["Content-Type"].split("/")[-1]  # not so sure that it'd always work
             self.nftFile.save(
-                "{}/{}.{}".format(self.UID, self.index, extension),
+                "{}/{}.{}".format(self.collection.address, self.nID, extension),
                 File(open(name, "rb")),
                 False,
             )
@@ -109,7 +109,7 @@ class NFT(MPTTModel):
         super(NFT, self).save(*args, **kwargs)
 
     class Meta:
-        unique_together = ["UID", "index"]
+        unique_together = ["collection", "nID"]
 
 
 @receiver(models.signals.post_delete, sender=NFT)
@@ -130,7 +130,8 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
 
 
 class NFTCollection(MPTTModel):
-    name = models.CharField(max_length=128, primary_key=True, verbose_name=_("Name"))
+    address = models.CharField(max_length=128, primary_key=True, verbose_name=_("address"))
+    name = models.CharField(max_length=128, verbose_name=_("Name"), unique=True)
     collectionImage = models.ImageField(
         _("Collection Image"),
         null=True,
@@ -254,6 +255,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(_("Superuser"), default=False)
     is_staff = models.BooleanField(_("Staff"), default=False)
     date_joined = models.DateTimeField(_("Join Date"), default=timezone.now, editable=False)
+    totalNFTLikes = models.IntegerField(_("Number of liked NFTs"), default=0)
+    totalCollectionLikes = models.IntegerField(_("Number of liked NFT Collections"), default=0)
     objects = AccountManager()
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = ["email", "uAddress"]
@@ -306,9 +309,11 @@ class UserFavoritedNFT(MPTTModel):
     # TODO: CHECK IF SENDING THE SAME REQUEST EFFECTS ANYTHING?
     def save(self, *args, **kwargs):
         self.nft.numLikes += 1
-        self.nft.collectionName.totalNFTLikes += 1
+        self.nft.address.totalNFTLikes += 1
+        self.user.totalNFTLikes += 1
         self.nft.save()
         self.nft.collectionName.save()
+        self.user.save()
         super(UserFavoritedNFT, self).save(*args, **kwargs)
 
 
@@ -353,6 +358,8 @@ class UserWatchListedNFTCollection(MPTTModel):
     def save(self, *args, **kwargs):
         self.nftCollection.numLikes += 1
         self.nftCollection.save()
+        self.user.totalCollectionLikes += 1
+        self.user.save()
         super(UserWatchListedNFTCollection, self).save(*args, **kwargs)
 
 

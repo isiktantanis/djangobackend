@@ -49,7 +49,8 @@ def NFTListView(request):
 
     elif request.method == "PATCH":
         reqData = request.data.dict()
-        NFTToChange = NFT.objects.all().filter(UID=reqData["UID"], index=reqData["index"])
+        collection = NFTCollection.objects.get(pk=reqData["address"])
+        NFTToChange = NFT.objects.all().filter(collection=collection, nID=reqData["nID"])
         NFTToChange.update(**reqData)
         if len(NFTToChange) == 0:
             return Response(status=400)
@@ -159,13 +160,13 @@ def UserFavoritedNFTListView(request):
         req = {}
         if "user" in reqData.keys():
             req["user"] = reqData["user"]
-        if "UID" in reqData.keys() and "index" in reqData.keys():
-            req["nft"] = NFT.objects.filter(UID=reqData["UID"], index=reqData["index"])
+        if "address" in reqData.keys() and "nID" in reqData.keys():
+            collection = NFTCollection.objects.get(pk=reqData["address"])
+            req["nft"] = NFT.objects.filter(collection=collection, nID=reqData["nID"])
             if len(req["nft"]) == 0:
                 return Response([])
             req["nft"] = req["nft"][0].id
         favoriteItems = UserFavoritedNFT.objects.all().filter(**req)
-        print(favoriteItems)
         # give the client exactly what they want
         # TODO: WRITE SOMETHING SMARTER here
 
@@ -189,8 +190,9 @@ def UserFavoritedNFTListView(request):
             req = {}
             if "user" in request.data.keys():
                 req["user"] = request.data["user"]
-            if "UID" in request.data.keys() and "index" in request.data.keys():
-                req["nft"] = NFT.objects.all().filter(UID=request.data["UID"], index=request.data["index"])[0].id
+            if "address" in request.data.keys() and "nID" in request.data.keys():
+                collection = NFTCollection.objects.get(pk=request.data["address"])
+                req["nft"] = NFT.objects.all().filter(collection=collection, nID=request.data["nID"])[0].id
             newLike = UserFavoritedNFTSerializer(data=req)
         else:
             newLike = UserFavoritedNFTSerializer(data=request.data)
@@ -205,8 +207,9 @@ def UserFavoritedNFTListView(request):
             req = {}
             if "user" in request.data.keys():
                 req["user"] = request.data["user"]
-            if "UID" in request.data.keys() and "index" in request.data.keys():
-                req["nft"] = NFT.objects.all().filter(UID=request.data["UID"], index=request.data["index"])[0].id
+            if "address" in request.data.keys() and "nID" in request.data.keys():
+                collection = NFTCollection.objects.get(pk=request.data["address"])
+                req["nft"] = NFT.objects.all().filter(collection=collection, nID=request.data["nID"])[0].id
             queryset = UserFavoritedNFT.objects.all().filter(**req)
         else:
             queryset = UserFavoritedNFT.objects.all().filter(**request.data)
@@ -255,11 +258,10 @@ def UserWatchListedNFTCollectionListView(request):
 def TransHistListView(request):
     if request.method == "GET":
         reqData = request.GET.dict()
-        # print(reqData)
-        if "UID" in reqData.keys() and "index" in reqData.keys():
-            # print("INSIDE_____________")
+        if "address" in reqData.keys() and "nID" in reqData.keys():
             newReq = {}
-            newReq["nft"] = NFT.objects.filter(UID=reqData["UID"], index=reqData["index"])
+            collection = NFTCollection.objects.get(pk=reqData["address"])
+            newReq["nft"] = NFT.objects.filter(collection=collection, nID=reqData["nID"])
             if len(newReq["nft"]) == 0:
                 return Response([])
             newReq["nft"] = newReq["nft"][0].id
@@ -267,7 +269,6 @@ def TransHistListView(request):
             queryset = TransHistSerializer(queryset, many=True)
             return Response(queryset.data)
         else:
-            # print("OUTSIDE_____________")
             queryset = TransHist.objects.all().filter(**request.GET.dict())
             queryset = TransHistSerializer(queryset, many=True)
             return Response(queryset.data)
@@ -290,8 +291,6 @@ def HottestListView(request):
         reqData = (
             request.GET.dict()
         )  # Will be given one of [nft, user, collection] and one of [DAY, MONTH, YEAR, ALLTIME]
-        for i in reqData.keys():
-            print(i)
         if "nft" in reqData.keys():
             transQuery = TransHist.objects.all()
             currentTime = date.today()
@@ -304,9 +303,7 @@ def HottestListView(request):
             elif "YEAR" in reqData.keys():
                 transQuery = transQuery.filter(time__year=currentTime.year)
             valueSet = transQuery.values("nft").order_by().annotate(nft__count=Count("nft"))
-            print(valueSet)
             finalSet = (valueSet.order_by("-nft__count")[:5]).values("nft")
-            print(finalSet)
             queryset = NFT.objects.filter(id__in=finalSet)
             queryset = NFTSerializer(queryset, many=True)
             return Response(queryset.data)
@@ -322,14 +319,11 @@ def HottestListView(request):
             elif "YEAR" in reqData.keys():
                 transQuery = transQuery.filter(time__year=currentTime.year)
             valueSet = transQuery.values("oldOwner").order_by().annotate(oldOwner__count=Count("oldOwner"))
-            print(valueSet)
             finalSet = valueSet.order_by("-oldOwner__count")[:5].values("oldOwner")
-            print(finalSet)
             queryset = User.objects.filter(uAddress__in=finalSet)
             queryset = UserSerializer(queryset, many=True)
             return Response(queryset.data)
         if "collection" in reqData.keys():
             valueSet = NFTCollection.objects.all().order_by('-numLikes')[:5]
-            print(valueSet)
             queryset = NFTCollectionSerializer(valueSet, many=True)
             return Response(queryset.data)

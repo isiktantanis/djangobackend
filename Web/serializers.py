@@ -17,14 +17,13 @@ class UserCreateSerializer(UserCreateSerializer):
         model = User
         fields = [
             "uAddress",
-            "last_login",
             "username",
             "profilePicture",
             "email",
             "is_active",
-            "is_superuser",
-            "is_staff",
             "date_joined",
+            "totalCollectionLikes",
+            "totalNFTLikes"
         ]
 
 
@@ -35,12 +34,14 @@ class UserDeleteSerializer(UserCreateSerializer):
 
 
 class NFTSerializer(serializers.ModelSerializer):
+    collectionName = serializers.CharField(source='collection.name')
+    address = serializers.CharField(source='collection.address')
+
     class Meta:
         model = NFT
         fields = [
-            "id",
-            "UID",
-            "index",
+            "address",
+            "nID",
             "name",
             "description",
             "metaDataType",
