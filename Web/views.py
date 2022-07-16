@@ -1,6 +1,6 @@
-from datetime import date, datetime
+from datetime import date
 
-from django.db.models import Count, Max
+from django.db.models import Count
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -26,7 +26,7 @@ from .serializers import (
 # TODO: [NFTMAR-145] Enable Cascading on Foreign Keys On "Patch" Requests
 
 
-@api_view(["GET", "POST", "PATCH", "DELETE"])
+@api_view(["GET", "POST", "PATCH"])
 def NFTListView(request):
 
     if request.method == "GET":
@@ -39,13 +39,6 @@ def NFTListView(request):
         newNFTObject.is_valid(raise_exception=True)
         newNFTObject.save()
         return Response(newNFTObject.data)
-
-    elif request.method == "DELETE":
-        queryset = NFT.objects.all().filter(**request.data)
-        if len(queryset) == 0:
-            return Response(status=400)
-        queryset.delete()
-        return Response(status=200)
 
     elif request.method == "PATCH":
         reqData = request.data.dict()
@@ -61,7 +54,7 @@ def NFTListView(request):
 # TODO: Create Total Likes For NFTCollections
 
 
-@api_view(["GET", "POST", "PATCH", "DELETE"])
+@api_view(["GET", "POST", "PATCH"])
 def NFTCollectionListView(request):
     if request.method == "GET":
         queryset = NFTCollection.objects.all().filter(**request.GET.dict())
@@ -73,13 +66,6 @@ def NFTCollectionListView(request):
         newNFTCollectionObject.is_valid(raise_exception=True)
         newNFTCollectionObject.save()
         return Response(newNFTCollectionObject.data)
-
-    elif request.method == "DELETE":
-        queryset = NFTCollection.objects.all().filter(**request.data)
-        if len(queryset) == 0:
-            return Response(status=400)
-        queryset.delete()
-        return Response(status=200)
 
     elif request.method == "PATCH":
         reqData = request.data.dict()

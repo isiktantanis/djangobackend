@@ -48,9 +48,8 @@ class NFT(MPTTModel):
     collection = models.ForeignKey(
         "NFTCollection",
         verbose_name=_("Collection"),
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='+',
+        on_delete=models.CASCADE,
+        related_name='nft_list',
     )
     nID = models.IntegerField(verbose_name=_("nID"))
     name = models.CharField(max_length=128, verbose_name=_("Name"))
@@ -65,15 +64,16 @@ class NFT(MPTTModel):
     # TODO: [NFTMAR-130] MAKE USERS DELETABLE WITHOUT EFFECTING NFTS
     creator = models.ForeignKey(
         "User",
-        related_name="creator",
+        related_name="createdNFTs",
         verbose_name=_("Creator"),
-        on_delete=models.SET("USER_DELETED"),
+        on_delete=models.SET(0),
     )
-    currentOwner = models.ForeignKey("User", verbose_name=_("Current Owner"), on_delete=models.SET("USER_DELETED"))
+    currentOwner = models.ForeignKey("User", verbose_name=_("Current Owner"), on_delete=models.SET(0), 
+                                     related_name="ownedNFTs")
     marketStatus = models.IntegerField(
         verbose_name=_("Market Status"),
         default=0,
-        choices=[(0, "Not On Market"), (1, "Not On Sale"), (2, "On Sale")],
+        choices=[(0, "Not On Market"), (1, "Not On Sale"), (2, "On Sale"), (3, "On Auction")],
     )
     nftFile = models.FileField(
         upload_to="nfts/",
@@ -82,7 +82,6 @@ class NFT(MPTTModel):
         storage=OverwriteStorage(),
         verbose_name=_("File"),
     )
-    numLikes = models.IntegerField(default=0, verbose_name=_("Number of Likes"))
     parent = TreeForeignKey(
         "self",
         on_delete=models.CASCADE,
@@ -126,16 +125,12 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
             if len(os.listdir(directoryPath)) == 0:
                 os.rmdir(directoryPath)
 
-    # ADD LIKED BY NUMBER
-
 
 class NFTCollection(MPTTModel):
     address = models.CharField(max_length=128, primary_key=True, verbose_name=_("address"))
     name = models.CharField(max_length=128, verbose_name=_("Name"), unique=True)
     collectionImage = models.ImageField(
         _("Collection Image"),
-        null=True,
-        blank=True,
         storage=OverwriteStorage(),
         upload_to=FileUploadLocation(parentFolder="NFTCollections/", fields=["name"]),
     )
@@ -151,21 +146,17 @@ class NFTCollection(MPTTModel):
     owner = models.ForeignKey(
         "User",
         to_field="username",
-        related_name="NFTCollection",
+        related_name="ownedCollections",
         verbose_name=_("Owner"),
-        on_delete=models.SET("USER_DELETED"),
+        on_delete=models.SET(0),
     )
     category = models.ForeignKey(
         "NFTCollectionCategory",
         to_field="name",
-        related_name="category",
+        related_name="collection_set",
         null=True,
         verbose_name=_("Category of the NFT Collection."),
-        on_delete=models.SET("USER_DELETED"),
-    )
-    numLikes = models.IntegerField(default=0, verbose_name=_("Number of Likes"))
-    totalNFTLikes = models.IntegerField(
-        default=0, verbose_name=_("Total Number of Likes of all NFT's inside the Collection")
+        on_delete=models.SET_NULL
     )
 
 
@@ -244,8 +235,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(_("Username"), max_length=32, unique=True)
     profilePicture = models.ImageField(
         _("Profile Picture"),
-        null=True,
-        blank=True,
+        default="profilePictures/default.png",
         storage=OverwriteStorage(),
         upload_to=FileUploadLocation(parentFolder="profilePictures/", fields=["username"]),
     )
@@ -255,8 +245,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(_("Superuser"), default=False)
     is_staff = models.BooleanField(_("Staff"), default=False)
     date_joined = models.DateTimeField(_("Join Date"), default=timezone.now, editable=False)
-    totalNFTLikes = models.IntegerField(_("Number of liked NFTs"), default=0)
-    totalCollectionLikes = models.IntegerField(_("Number of liked NFT Collections"), default=0)
     objects = AccountManager()
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = ["email", "uAddress"]
@@ -306,30 +294,10 @@ class UserFavoritedNFT(MPTTModel):
         unique_together = ["user", "nft"]
         db_table = "Favorites"
 
-    # TODO: CHECK IF SENDING THE SAME REQUEST EFFECTS ANYTHING?
-    def save(self, *args, **kwargs):
-        self.nft.numLikes += 1
-        self.nft.collection.totalNFTLikes += 1
-        self.user.totalNFTLikes += 1
-        self.nft.save()
-        self.nft.collection.save()
-        self.user.save()
-        super(UserFavoritedNFT, self).save(*args, **kwargs)
-
-
-@receiver(models.signals.post_delete, sender=UserFavoritedNFT)
-def decrease_like(sender, instance, **kwargs):
-    if instance.nft:
-        instance.nft.numLikes -= 1
-        instance.nft.collection.totalNFTLikes -= 1
-        instance.nft.save()
-        instance.nft.collection.save()
-
-
 class UserWatchListedNFTCollection(MPTTModel):
     user = models.ForeignKey(
         "User",
-        related_name="watchListed",
+        related_name="watchLists",
         verbose_name=_("User"),
         on_delete=models.CASCADE,
     )
@@ -355,33 +323,19 @@ class UserWatchListedNFTCollection(MPTTModel):
         unique_together = ["user", "nftCollection"]
         db_table = "WatchLists"
 
-    def save(self, *args, **kwargs):
-        self.nftCollection.numLikes += 1
-        self.nftCollection.save()
-        self.user.totalCollectionLikes += 1
-        self.user.save()
-        super(UserWatchListedNFTCollection, self).save(*args, **kwargs)
-
-
-@receiver(models.signals.post_delete, sender=UserWatchListedNFTCollection)
-def decrease_like(sender, instance, **kwargs):
-    if instance.nftCollection:
-        instance.nftCollection.numLikes -= 1
-        instance.nftCollection.save()
-
 
 class TransHist(MPTTModel):
     oldOwner = models.ForeignKey(
         "User",
         related_name="oldUser",
         verbose_name=_("Old User"),
-        on_delete=models.CASCADE,
+        on_delete=models.SET(0),
     )
     newOwner = models.ForeignKey(
         "User",
         related_name="newUser",
         verbose_name=_("New User"),
-        on_delete=models.CASCADE,
+        on_delete=models.SET(0),
     )
     price = models.IntegerField(verbose_name=_("Price"), validators=[MinValueValidator(1)])
     time = models.DateTimeField(_("Time of Transaction"), default=timezone.now)
