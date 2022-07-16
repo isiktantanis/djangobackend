@@ -122,9 +122,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = "static/"
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "build/static")]
-
-STATIC_ROOT = "/home/MertD/django_backend/static"
 # os.path.join(BASE_DIR, "static")
 
 AUTH_USER_MODEL = "Web.User"
@@ -134,7 +131,7 @@ AUTH_USER_MODEL = "Web.User"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, 'static_cdn', MEDIA_URL)
 # TODO: UPDATE THIS
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
@@ -187,3 +184,7 @@ DJOSER = {
     "EMAIL": {"activation": "Web.email.ActivationEmail"},
     "TOKEN_MODEL": None,
 }
+
+import django_heroku
+
+django_heroku.settings(locals())
