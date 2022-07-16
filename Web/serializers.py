@@ -13,11 +13,11 @@ from .models import (
 
 class UserCreateSerializer(UserCreateSerializer):
     def to_representation(self, instance):
-        serializedNFT = super(UserCreateSerializer, self).to_representation(instance)
+        serializedUser = super(UserCreateSerializer, self).to_representation(instance)
         NFTLikes = instance.likes.count()
         collectionLikes = instance.watchLists.count()
-        serializedNFT.update({"NFTLikes": NFTLikes, "collectionLikes": collectionLikes})
-        return serializedNFT
+        serializedUser.update({"NFTLikes": NFTLikes, "collectionLikes": collectionLikes})
+        return serializedUser
 
     class Meta(UserCreateSerializer.Meta):
         model = User
@@ -88,9 +88,10 @@ class NFTCollectionSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         serializedCollection = super(NFTCollectionSerializer, self).to_representation(instance)
         numLikes = instance.watchListedBy.count()
-        NFTs = instance.nft_list.all()
+        NFTs = list(instance.nft_list.get_queryset())
+        serializedNFTList = NFTSerializer(NFTs, many=True).data
         NFTLikes = sum([nft.likedBy.count() for nft in NFTs])
-        serializedCollection.update({"numLikes": numLikes, "NFTLikes": NFTLikes})
+        serializedCollection.update({"numLikes": numLikes, "NFTLikes": NFTLikes, "NFTs": serializedNFTList})
         return serializedCollection
 
     class Meta:
