@@ -1,1 +1,1 @@
-web: gunicorn Web.wsgi
+web: gunicorn NFTMarketBackend.wsgi
