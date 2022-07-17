@@ -88,10 +88,9 @@ class NFTCollectionSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         serializedCollection = super(NFTCollectionSerializer, self).to_representation(instance)
         numLikes = instance.watchListedBy.count()
-        NFTs = list(instance.nft_list.get_queryset())
-        serializedNFTList = NFTSerializer(NFTs, many=True).data
+        NFTs = instance.nft_list.all()
         NFTLikes = sum([nft.likedBy.count() for nft in NFTs])
-        serializedCollection.update({"numLikes": numLikes, "NFTLikes": NFTLikes, "NFTs": serializedNFTList})
+        serializedCollection.update({"numLikes": numLikes, "NFTLikes": NFTLikes})
         return serializedCollection
 
     class Meta:
@@ -106,6 +105,14 @@ class NFTCollectionSerializer(serializers.ModelSerializer):
 
 
 class NFTCategorySerializer(serializers.ModelSerializer):
+
+    def to_representation(self, instance):
+        serializedCategory = super(NFTCategorySerializer, self).to_representation(instance)
+        collectionData = instance.collection_set.get_queryset()
+        serializedCollections = NFTCollectionSerializer(collectionData, many=True).data
+        serializedCategory.update({"collections": serializedCollections})
+        return serializedCategory
+
     class Meta:
         model = NFTCollectionCategory
         fields = ["name", "backgroundPicture", "foregroundPicture"]
