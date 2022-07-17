@@ -106,14 +106,6 @@ class NFTCollectionSerializer(serializers.ModelSerializer):
 
 
 class NFTCategorySerializer(serializers.ModelSerializer):
-
-    def to_representation(self, instance):
-        serializedCategory = super(NFTCategorySerializer, self).to_representation(instance)
-        collectionData = instance.collection_set.get_queryset()
-        serializedCollections = NFTCollectionSerializer(collectionData, many=True).data
-        serializedCategory.update({"collections": serializedCollections})
-        return serializedCategory
-
     class Meta:
         model = NFTCollectionCategory
         fields = ["name", "backgroundPicture", "foregroundPicture"]
