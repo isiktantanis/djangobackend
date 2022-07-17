@@ -96,6 +96,7 @@ class NFTCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = NFTCollection
         fields = [
+            "address",
             "name",
             "collectionImage",
             "description",

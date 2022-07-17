@@ -134,14 +134,6 @@ class NFTCollection(MPTTModel):
         storage=OverwriteStorage(),
         upload_to=FileUploadLocation(parentFolder="NFTCollections/", fields=["name"]),
     )
-    parent = TreeForeignKey(
-        "self",
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name="children",
-        editable=False,
-    )
     description = models.TextField(verbose_name=_("Description"), null=True, blank=True)
     owner = models.ForeignKey(
         "User",
@@ -157,6 +149,14 @@ class NFTCollection(MPTTModel):
         null=True,
         verbose_name=_("Category of the NFT Collection."),
         on_delete=models.SET_NULL
+    )
+    parent = TreeForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children",
+        editable=False,
     )
 
 
