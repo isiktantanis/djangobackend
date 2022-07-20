@@ -272,44 +272,85 @@ def TransHistListView(request):
 
 
 @api_view(["GET"])
-def HottestListView(request):
-    if request.method == "GET":
-        reqData = (
-            request.GET.dict()
-        )  # Will be given one of [nft, user, collection] and one of [DAY, MONTH, YEAR, ALLTIME]
-        if "nft" in reqData.keys():
-            transQuery = TransHist.objects.all()
-            currentTime = date.today()
-            if "DAY" in reqData.keys():
-                transQuery = transQuery.filter(
-                    time__year=currentTime.year, time__month=currentTime.month, time__day=currentTime.day
-                )
-            elif "MONTH" in reqData.keys():
-                transQuery = transQuery.filter(time__year=currentTime.year, time__month=currentTime.month)
-            elif "YEAR" in reqData.keys():
-                transQuery = transQuery.filter(time__year=currentTime.year)
-            valueSet = transQuery.values("nft").order_by().annotate(nft__count=Count("nft"))
-            finalSet = (valueSet.order_by("-nft__count")[:5]).values("nft")
-            queryset = NFT.objects.filter(id__in=finalSet)
-            queryset = NFTSerializer(queryset, many=True)
-            return Response(queryset.data)
-        if "user" in reqData.keys():
-            transQuery = TransHist.objects.all()
-            currentTime = date.today()
-            if "DAY" in reqData.keys():
-                transQuery = transQuery.filter(
-                    time__year=currentTime.year, time__month=currentTime.month, time__day=currentTime.day
-                )
-            elif "MONTH" in reqData.keys():
-                transQuery = transQuery.filter(time__year=currentTime.year, time__month=currentTime.month)
-            elif "YEAR" in reqData.keys():
-                transQuery = transQuery.filter(time__year=currentTime.year)
-            valueSet = transQuery.values("oldOwner").order_by().annotate(oldOwner__count=Count("oldOwner"))
-            finalSet = valueSet.order_by("-oldOwner__count")[:5].values("oldOwner")
-            queryset = User.objects.filter(uAddress__in=finalSet)
-            queryset = UserSerializer(queryset, many=True)
-            return Response(queryset.data)
-        if "collection" in reqData.keys():
-            valueSet = NFTCollection.objects.all().order_by('-numLikes')[:5]
-            queryset = NFTCollectionSerializer(valueSet, many=True)
-            return Response(queryset.data)
+def TrendingNFTListView(request):
+    reqData = request.GET.dict()
+    time = "day"
+    amount = 5
+
+    if "time" in reqData.keys():
+        time = reqData["time"]
+    if "amount" in reqData.keys():
+        amount = reqData["amount"]
+
+    transQuery = TransHist.objects.all()
+    currentTime = date.today()
+    if time == "day":
+        transQuery = transQuery.filter(
+            time__year=currentTime.year, time__month=currentTime.month, time__day=currentTime.day
+        )
+    elif time == "month":
+        transQuery = transQuery.filter(time__year=currentTime.year, time__month=currentTime.month)
+    elif time == "year":
+        transQuery = transQuery.filter(time__year=currentTime.year)
+    valueSet = transQuery.values("nft").order_by().annotate(nft__count=Count("nft"))
+    finalSet = (valueSet.order_by("-nft__count")[:amount]).values("nft")
+    queryset = NFT.objects.filter(id__in=finalSet)
+    queryset = NFTSerializer(queryset, many=True)
+    return Response(queryset.data)
+
+@api_view(["GET"])
+def TrendingCollectionListView(request):
+    reqData = request.GET.dict()
+    time = "day"
+    amount = 5
+
+    if "time" in reqData.keys():
+        time = reqData["time"]
+    if "amount" in reqData.keys():
+        amount = reqData["amount"]
+
+    watchLists = UserWatchListedNFTCollection.objects.all()
+    currentTime = date.today()
+    if time == "day":
+        watchLists = watchLists.filter(
+            time__year=currentTime.year, time__month=currentTime.month, time__day=currentTime.day
+        )
+    elif time == "month":
+        watchLists = watchLists.filter(time__year=currentTime.year, time__month=currentTime.month)
+    elif time == "year":
+        watchLists = watchLists.filter(time__year=currentTime.year)
+
+    valueSet = watchLists.values("nftCollection").order_by().annotate(collection__count=Count("nftCollection"))
+    finalSet = valueSet.order_by("-collection__count")[:amount].values("nftCollection")
+    queryset = NFTCollection.objects.filter(address__in=finalSet)
+    serializedNFTCollections = NFTCollectionSerializer(queryset, many=True).data
+    return Response(serializedNFTCollections)
+
+
+@api_view(["GET"])
+def TrendingUserListView(request):
+    reqData = request.GET.dict()
+    transQuery = TransHist.objects.all()
+    currentTime = date.today()
+
+    time = "day"
+    amount = 5
+    if "time" in reqData.keys():
+        time = reqData["time"]
+    if "amount" in reqData.keys():
+        amount = reqData["amount"]
+
+    if time == "day":
+        transQuery = transQuery.filter(
+            time__year=currentTime.year, time__month=currentTime.month, time__day=currentTime.day
+        )
+    elif time == "month":
+        transQuery = transQuery.filter(time__year=currentTime.year, time__month=currentTime.month)
+    elif time == "year":
+        transQuery = transQuery.filter(time__year=currentTime.year)
+    valueSet = transQuery.values("oldOwner").order_by().annotate(oldOwner__count=Count("oldOwner"))
+    finalSet = valueSet.order_by("-oldOwner__count")[:5].values("oldOwner")
+    queryset = User.objects.filter(uAddress__in=finalSet)
+    queryset = UserSerializer(queryset, many=True)
+    return Response(queryset.data)
+

@@ -20,5 +20,8 @@ urlpatterns = [
         name="WatchLists_home",
     ),
     path("api/transactionHistory/", views.TransHistListView, name="TransHistHome"),
-    path("api/hottest/", views.HottestListView, name="HottestHome"),
+    path("api/trending/user", views.TrendingUserListView, name="TrendingUsers"),
+    path("api/trending/collection", views.TrendingCollectionListView, name="TrendingCollections"),
+    path("api/trending/nft", views.TrendingNFTListView, name="TrendingNFTs"),
+
 ]

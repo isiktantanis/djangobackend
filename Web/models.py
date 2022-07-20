@@ -278,6 +278,7 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
 class UserFavoritedNFT(MPTTModel):
     user = models.ForeignKey("User", related_name="likes", verbose_name=_("User"), on_delete=models.CASCADE)
     nft = models.ForeignKey("NFT", related_name="likedBy", verbose_name=_("NFT"), on_delete=models.CASCADE)
+    time = models.DateTimeField(_("Time Favorited"), default=timezone.now)
     parent = TreeForeignKey(
         "self",
         on_delete=models.CASCADE,
@@ -307,6 +308,7 @@ class UserWatchListedNFTCollection(MPTTModel):
         verbose_name=_("NFT Collection"),
         on_delete=models.CASCADE,
     )
+    time = models.DateTimeField(_("Time Watchlisted"), default=timezone.now)
     parent = TreeForeignKey(
         "self",
         on_delete=models.CASCADE,
