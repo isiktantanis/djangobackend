@@ -278,7 +278,7 @@ def TransHistListView(request):
 @api_view(["GET"])
 def TrendingNFTListView(request):
     reqData = request.GET.dict()
-    time = "day"
+    time = "alltime"
     amount = 5
 
     if "time" in reqData.keys():
@@ -305,7 +305,7 @@ def TrendingNFTListView(request):
 @api_view(["GET"])
 def TrendingCollectionListView(request):
     reqData = request.GET.dict()
-    time = "day"
+    time = "alltime"
     amount = 5
 
     if "time" in reqData.keys():
@@ -337,7 +337,7 @@ def TrendingUserListView(request):
     transQuery = TransHist.objects.all()
     currentTime = date.today()
 
-    time = "day"
+    time = "alltime"
     amount = 5
     if "time" in reqData.keys():
         time = reqData["time"]
@@ -353,7 +353,7 @@ def TrendingUserListView(request):
     elif time == "year":
         transQuery = transQuery.filter(time__year=currentTime.year)
     valueSet = transQuery.values("oldOwner").order_by().annotate(oldOwner__count=Count("oldOwner"))
-    finalSet = valueSet.order_by("-oldOwner__count")[:5].values("oldOwner")
+    finalSet = valueSet.order_by("-oldOwner__count")[:amount].values("oldOwner")
     queryset = User.objects.filter(uAddress__in=finalSet)
     queryset = UserSerializer(queryset, many=True)
     return Response(queryset.data)
