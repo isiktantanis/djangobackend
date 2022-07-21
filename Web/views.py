@@ -42,7 +42,7 @@ def NFTListView(request):
 
     elif request.method == "PATCH":
         reqData = request.data.dict()
-        collection = NFTCollection.objects.get(pk=reqData["address"])
+        collection = NFTCollection.objects.get(address=reqData["address"])
         NFTToChange = NFT.objects.all().filter(collection=collection, nID=reqData["nID"])
         NFTToChange.update(**reqData)
         if len(NFTToChange) == 0:
@@ -90,7 +90,7 @@ def UserListView(request):
         return Response(newUserObject.data)
 
     elif request.method == "DELETE":
-        queryset = User.objects.all().filter(**request.data)
+        queryset = User.objects.all().filter(**request.GET.dict())
         if len(queryset) == 0:
             return Response(status=400)
         # queryset.delete()
@@ -123,7 +123,7 @@ def CategoryListView(request):
         return Response(newCategoryObject.data)
 
     elif request.method == "DELETE":
-        queryset = NFTCollectionCategory.objects.all().filter(**request.data)
+        queryset = NFTCollectionCategory.objects.all().filter(**request.GET.dict())
         if len(queryset) == 0:
             return Response(status=400)
         queryset.delete()
@@ -147,7 +147,7 @@ def UserFavoritedNFTListView(request):
         if "user" in reqData.keys():
             req["user"] = reqData["user"]
         if "address" in reqData.keys() and "nID" in reqData.keys():
-            collection = NFTCollection.objects.get(pk=reqData["address"])
+            collection = NFTCollection.objects.get(address=reqData["address"])
             req["nft"] = NFT.objects.filter(collection=collection, nID=reqData["nID"])
             if len(req["nft"]) == 0:
                 return Response([])
@@ -177,7 +177,7 @@ def UserFavoritedNFTListView(request):
             if "user" in request.data.keys():
                 req["user"] = request.data["user"]
             if "address" in request.data.keys() and "nID" in request.data.keys():
-                collection = NFTCollection.objects.get(pk=request.data["address"])
+                collection = NFTCollection.objects.get(address=request.data["address"])
                 req["nft"] = NFT.objects.all().filter(collection=collection, nID=request.data["nID"])[0].id
             newLike = UserFavoritedNFTSerializer(data=req)
         else:
@@ -189,16 +189,20 @@ def UserFavoritedNFTListView(request):
 
     elif request.method == "DELETE":
         # resolve primary key issue of NFT
-        if "nft" not in request.data.keys():
+        reqData = request.GET.dict()
+        if "nft" not in reqData.keys():
             req = {}
-            if "user" in request.data.keys():
-                req["user"] = request.data["user"]
-            if "address" in request.data.keys() and "nID" in request.data.keys():
-                collection = NFTCollection.objects.get(pk=request.data["address"])
-                req["nft"] = NFT.objects.all().filter(collection=collection, nID=request.data["nID"])[0].id
+            if "user" in reqData.keys():
+                req["user"] = reqData["user"]
+            # print(request.__dict__)
+            if "address" in reqData.keys() and "nID" in reqData.keys():
+                collection = NFTCollection.objects.get(address=reqData["address"])
+                print(collection)
+                req["nft"] = NFT.objects.all().filter(collection=collection, nID=reqData["nID"])[0].id
             queryset = UserFavoritedNFT.objects.all().filter(**req)
+            print(queryset)
         else:
-            queryset = UserFavoritedNFT.objects.all().filter(**request.data)
+            queryset = UserFavoritedNFT.objects.all().filter(**reqData)
 
         if len(queryset) == 0:
             return Response(status=400)
@@ -233,7 +237,7 @@ def UserWatchListedNFTCollectionListView(request):
         return Response(newLike.data, status=201)
 
     elif request.method == "DELETE":
-        queryset = UserWatchListedNFTCollection.objects.all().filter(**request.data)
+        queryset = UserWatchListedNFTCollection.objects.all().filter(**request.GET.dict())
         if len(queryset) == 0:
             return Response(status=400)
         queryset.delete()
@@ -246,7 +250,7 @@ def TransHistListView(request):
         reqData = request.GET.dict()
         if "address" in reqData.keys() and "nID" in reqData.keys():
             newReq = {}
-            collection = NFTCollection.objects.get(pk=reqData["address"])
+            collection = NFTCollection.objects.get(address=reqData["address"])
             newReq["nft"] = NFT.objects.filter(collection=collection, nID=reqData["nID"])
             if len(newReq["nft"]) == 0:
                 return Response([])
@@ -264,7 +268,7 @@ def TransHistListView(request):
         newTransHistObject.save()
         return Response(newTransHistObject.data)
     elif request.method == "DELETE":
-        queryset = TransHist.objects.all().filter(**request.data)
+        queryset = TransHist.objects.all().filter(**request.GET.dict())
         if len(queryset) == 0:
             return Response(status=400)
         queryset.delete()
