@@ -1,4 +1,5 @@
 from datetime import date
+from time import time
 
 from django.db.models import Count
 from rest_framework.decorators import api_view
@@ -24,6 +25,12 @@ from .serializers import (
 )
 
 # TODO: [NFTMAR-145] Enable Cascading on Foreign Keys On "Patch" Requests
+
+
+@api_view(["GET"])
+def CurrentTimeView(request):
+    data = {"time": time()}
+    return Response(data)
 
 
 @api_view(["GET", "POST", "PATCH"])
