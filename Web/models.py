@@ -16,6 +16,7 @@ from django.utils import timezone
 from django.utils.deconstruct import deconstructible
 from django.utils.translation import gettext_lazy as _
 from mptt.models import MPTTModel, TreeForeignKey
+from gdstorage.storage import GoogleDriveStorage
 
 
 # Class for renaming the upload name of image files
@@ -36,12 +37,13 @@ class FileUploadLocation(object):
         return "{}/{}.{}".format(self.parentFolder, directoryWRTFields, filename.split(".")[-1])
 
 
+gd_storage = GoogleDriveStorage()
 # Overrides the file with the same file name
-class OverwriteStorage(FileSystemStorage):
-    def get_available_name(self, name, max_length=None):
-        if self.exists(name):
-            os.remove(os.path.join(settings.MEDIA_ROOT, name))
-        return name
+# class OverwriteStorage(gd_storage):
+#     def get_available_name(self, name, max_length=None):
+#         if self.exists(name):
+#             os.remove(os.path.join(settings.MEDIA_ROOT, name))
+#         return name
 
 
 class NFT(MPTTModel):
@@ -79,7 +81,7 @@ class NFT(MPTTModel):
         upload_to="nfts/",
         blank=True,
         null=True,
-        storage=OverwriteStorage(),
+        storage=gd_storage,
         verbose_name=_("File"),
     )
     parent = TreeForeignKey(
@@ -131,7 +133,7 @@ class NFTCollection(MPTTModel):
     name = models.CharField(max_length=128, verbose_name=_("Name"), unique=True)
     collectionImage = models.ImageField(
         _("Collection Image"),
-        storage=OverwriteStorage(),
+        storage=gd_storage,
         upload_to=FileUploadLocation(parentFolder="NFTCollections/", fields=["name"]),
     )
     description = models.TextField(verbose_name=_("Description"), null=True, blank=True)
@@ -175,12 +177,12 @@ class NFTCollectionCategory(MPTTModel):
     name = models.CharField(_("Name"), primary_key=True, max_length=16)
     backgroundPicture = models.ImageField(
         _("Background Picture"),
-        storage=OverwriteStorage(),
+        storage=gd_storage,
         upload_to=FileUploadLocation(parentFolder="Categories/", fields=["name", "background"]),
     )
     foregroundPicture = models.ImageField(
         _("Foreground Picture"),
-        storage=OverwriteStorage(),
+        storage=gd_storage,
         upload_to=FileUploadLocation(parentFolder="Categories/", fields=["name", "foreground"]),
     )
     parent = TreeForeignKey(
@@ -236,7 +238,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     profilePicture = models.ImageField(
         _("Profile Picture"),
         default="profilePictures/default.png",
-        storage=OverwriteStorage(),
+        storage=gd_storage,
         upload_to=FileUploadLocation(parentFolder="profilePictures/", fields=["username"]),
     )
     email = models.EmailField(_("Email"), unique=True, max_length=128)

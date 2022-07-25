@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "djoser",
     "corsheaders",
+    'gdstorage'
 ]
 
 MIDDLEWARE = [
@@ -187,6 +188,12 @@ DJOSER = {
     "EMAIL": {"activation": "Web.email.ActivationEmail"},
     "TOKEN_MODEL": None,
 }
+
+#
+# Google Drive Storage Settings
+#
+GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE = 'NFTMarketBackend/djangobackend-354300-39d956879fff.json'
+GOOGLE_DRIVE_STORAGE_MEDIA_ROOT = '/media'
 
 import django_heroku
 

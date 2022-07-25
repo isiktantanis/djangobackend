@@ -7,3 +7,4 @@ djoser
 django-cors-headers
 django_heroku
 gunicorn
+django-googledrive-storages
