@@ -29,7 +29,7 @@ from .serializers import (
 
 @api_view(["GET"])
 def CurrentTimeView(request):
-    data = {"time": time()}
+    data = [{"time": time()}]
     return Response(data)
 
 
