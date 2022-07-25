@@ -23,6 +23,6 @@ urlpatterns = [
     path("api/trending/user/", views.TrendingUserListView, name="TrendingUsers"),
     path("api/trending/collection/", views.TrendingCollectionListView, name="TrendingCollections"),
     path("api/trending/nft/", views.TrendingNFTListView, name="TrendingNFTs"),
-    path("api/time", views.CurrentTimeView, name="time")
+    path("api/time/", views.CurrentTimeView, name="time")
 
 ]
