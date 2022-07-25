@@ -237,8 +237,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(_("Username"), max_length=32, unique=True)
     profilePicture = models.ImageField(
         _("Profile Picture"),
-        default="profilePictures/default.png",
         storage=gd_storage,
+        null=True,
+        blank=True,
         upload_to=FileUploadLocation(parentFolder="profilePictures/", fields=["username"]),
     )
     email = models.EmailField(_("Email"), unique=True, max_length=128)
