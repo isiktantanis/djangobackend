@@ -34,6 +34,7 @@ class FileUploadLocation(object):
             else:
                 directoryWRTFields += "{}/".format(field)
         directoryWRTFields = directoryWRTFields[:-1]
+        print("{}/{}.{}".format(self.parentFolder, directoryWRTFields, filename.split(".")[-1]))
         return "{}/{}.{}".format(self.parentFolder, directoryWRTFields, filename.split(".")[-1])
 
 
@@ -134,7 +135,7 @@ class NFTCollection(MPTTModel):
     collectionImage = models.ImageField(
         _("Collection Image"),
         storage=gd_storage,
-        upload_to=FileUploadLocation(parentFolder="NFTCollections/", fields=["name"]),
+        upload_to=FileUploadLocation(parentFolder="NFTCollections", fields=["name"]),
     )
     description = models.TextField(verbose_name=_("Description"), null=True, blank=True)
     owner = models.ForeignKey(
@@ -178,12 +179,12 @@ class NFTCollectionCategory(MPTTModel):
     backgroundPicture = models.ImageField(
         _("Background Picture"),
         storage=gd_storage,
-        upload_to=FileUploadLocation(parentFolder="Categories/", fields=["name", "background"]),
+        upload_to=FileUploadLocation(parentFolder="Categories", fields=["name", "background"]),
     )
     foregroundPicture = models.ImageField(
         _("Foreground Picture"),
         storage=gd_storage,
-        upload_to=FileUploadLocation(parentFolder="Categories/", fields=["name", "foreground"]),
+        upload_to=FileUploadLocation(parentFolder="Categories", fields=["name", "foreground"]),
     )
     parent = TreeForeignKey(
         "self",
@@ -240,7 +241,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         storage=gd_storage,
         null=True,
         blank=True,
-        upload_to=FileUploadLocation(parentFolder="profilePictures/", fields=["username"]),
+        upload_to=FileUploadLocation(parentFolder="profilePictures", fields=["username"]),
     )
     email = models.EmailField(_("Email"), unique=True, max_length=128)
     # needed IF foreign key constraint is chosen to be settled like this

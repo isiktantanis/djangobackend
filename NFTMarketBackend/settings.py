@@ -195,6 +195,6 @@ DJOSER = {
 GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE = 'NFTMarketBackend/djangobackend-354300-39d956879fff.json'
 GOOGLE_DRIVE_STORAGE_MEDIA_ROOT = '/media'
 
-import django_heroku
-
-django_heroku.settings(locals())
+# import django_heroku
+#
+# django_heroku.settings(locals())
