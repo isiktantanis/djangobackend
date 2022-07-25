@@ -113,19 +113,19 @@ class NFT(MPTTModel):
         unique_together = ["collection", "nID"]
 
 
-@receiver(models.signals.post_delete, sender=NFT)
-def auto_delete_file_on_delete(sender, instance, **kwargs):
-    """
-    Deletes file from filesystem
-    when corresponding `User` object is deleted.
-    """
-    if instance.nftFile:
-        if os.path.isfile(instance.nftFile.path):
-            os.remove(instance.nftFile.path)
-            # remove the directory of the file is the directory is empty
-            directoryPath = instance.nftFile.path[: instance.nftFile.path.rfind("/")]
-            if len(os.listdir(directoryPath)) == 0:
-                os.rmdir(directoryPath)
+# @receiver(models.signals.post_delete, sender=NFT)
+# def auto_delete_file_on_delete(sender, instance, **kwargs):
+#     """
+#     Deletes file from filesystem
+#     when corresponding `User` object is deleted.
+#     """
+#     if instance.nftFile:
+#         if os.path.isfile(instance.nftFile.path):
+#             os.remove(instance.nftFile.path)
+#             # remove the directory of the file is the directory is empty
+#             directoryPath = instance.nftFile.path[: instance.nftFile.path.rfind("/")]
+#             if len(os.listdir(directoryPath)) == 0:
+#                 os.rmdir(directoryPath)
 
 
 class NFTCollection(MPTTModel):
@@ -162,15 +162,15 @@ class NFTCollection(MPTTModel):
     )
 
 
-@receiver(models.signals.post_delete, sender=NFTCollection)
-def auto_delete_file_on_delete(sender, instance, **kwargs):
-    """
-    Deletes file from filesystem
-    when corresponding `NFTCollection` object is deleted.
-    """
-    if instance.collectionImage:
-        if os.path.isfile(instance.collectionImage.path):
-            os.remove(instance.collectionImage.path)
+# @receiver(models.signals.post_delete, sender=NFTCollection)
+# def auto_delete_file_on_delete(sender, instance, **kwargs):
+#     """
+#     Deletes file from filesystem
+#     when corresponding `NFTCollection` object is deleted.
+#     """
+#     if instance.collectionImage:
+#         if os.path.isfile(instance.collectionImage.path):
+#             os.remove(instance.collectionImage.path)
 
 
 class NFTCollectionCategory(MPTTModel):
@@ -198,19 +198,19 @@ class NFTCollectionCategory(MPTTModel):
         verbose_name_plural = "NFT Collection Categories"
 
 
-@receiver(models.signals.post_delete, sender=NFTCollectionCategory)
-def auto_delete_file_on_delete(sender, instance, **kwargs):
-    """
-    Deletes file from filesystem
-    when corresponding `NFTCollectionCategory` object is deleted.
-    """
-    if instance.backgroundPicture:
-        if os.path.isfile(instance.backgroundPicture.path):
-            os.remove(instance.backgroundPicture.path)
-
-    if instance.foregroundPicture:
-        if os.path.isfile(instance.foregroundPicture.path):
-            os.remove(instance.foregroundPicture.path)
+# @receiver(models.signals.post_delete, sender=NFTCollectionCategory)
+# def auto_delete_file_on_delete(sender, instance, **kwargs):
+#     """
+#     Deletes file from filesystem
+#     when corresponding `NFTCollectionCategory` object is deleted.
+#     """
+#     if instance.backgroundPicture:
+#         if os.path.isfile(instance.backgroundPicture.path):
+#             os.remove(instance.backgroundPicture.path)
+#
+#     if instance.foregroundPicture:
+#         if os.path.isfile(instance.foregroundPicture.path):
+#             os.remove(instance.foregroundPicture.path)
 
 
 class AccountManager(BaseUserManager):
@@ -262,19 +262,19 @@ class User(AbstractBaseUser, PermissionsMixin):
         super(User, self).save(*args, **kwargs)
 
 
-@receiver(models.signals.pre_save, sender=User)
-def auto_delete_file_on_delete(sender, instance, **kwargs):
-    """
-    Deletes file from filesystem
-    when corresponding `User` object gets deactivated.
-    """
-    try:
-        old_user = sender.objects.get(pk=instance.pk)
-        if old_user.profilePicture and not instance.is_active and old_user.is_active:
-            if os.path.isfile(old_user.profilePicture.path):
-                os.remove(old_user.profilePicture.path)
-    except:
-        pass
+# @receiver(models.signals.pre_save, sender=User)
+# def auto_delete_file_on_delete(sender, instance, **kwargs):
+#     """
+#     Deletes file from filesystem
+#     when corresponding `User` object gets deactivated.
+#     """
+#     try:
+#         old_user = sender.objects.get(pk=instance.pk)
+#         if old_user.profilePicture and not instance.is_active and old_user.is_active:
+#             if os.path.isfile(old_user.profilePicture.path):
+#                 os.remove(old_user.profilePicture.path)
+#     except:
+#         pass
 
 
 class UserFavoritedNFT(MPTTModel):
