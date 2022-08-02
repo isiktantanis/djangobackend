@@ -54,6 +54,7 @@ class NFT(MPTTModel):
         on_delete=models.CASCADE,
         related_name='nft_list',
     )
+
     nID = models.IntegerField(verbose_name=_("nID"))
     name = models.CharField(max_length=128, verbose_name=_("Name"))
     description = models.TextField(verbose_name=_("Description"), null=True, blank=True)
