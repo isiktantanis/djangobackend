@@ -1,0 +1,10 @@
+django
+pillow
+django-mptt
+djangorestframework
+djangorestframework_simplejwt
+djoser
+django-cors-headers
+django_heroku
+gunicorn
+django-googledrive-storage
