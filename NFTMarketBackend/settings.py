@@ -154,7 +154,7 @@ SIMPLE_JWT = {
     "UPDATE_LAST_LOGIN": False,
 }
 
-CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000", "https://sunft-marketplace-isiktantanis.vercel.app"]
 CORS_EXPOSE_HEADERS = ["Content-Type"]
 CORS_ALLOW_CREDENTIALS = True
 
